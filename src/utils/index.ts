@@ -9,7 +9,7 @@ export function hexToRgb(hex: string) {
 
 export function componentToHex(c: number) {
     const hex = c.toString(16);
-    return hex.length == 1 ? "0" + hex : hex;
+    return hex.length === 1 ? "0" + hex : hex;
   }
   
 export function rgbToHex(r: number, g: number, b: number) {
@@ -43,7 +43,7 @@ export function shapify(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
         const r = image_data.data[i + 0];
         const g = image_data.data[i + 1];
         const b = image_data.data[i + 2];
-        const a = image_data.data[i + 3];
+        // const a = image_data.data[i + 3];
 
         const x = (i / 4) % canvas.width;
         const y = Math.floor((i / 4) / canvas.width);
