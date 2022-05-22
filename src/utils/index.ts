@@ -1,3 +1,5 @@
+import ImageData from '@canvas/image-data';
+
 export function hexToRgb(hex: string) {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? {
@@ -88,10 +90,13 @@ export function xy_to_i([x, y]: [number, number], width: number) {
 }
 
 export function shapify(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+    console.time('shapify');
+
     const canvas = document.getElementById('as-canvas') as HTMLCanvasElement;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // draw image to canvas
     const segmentation_image = document.getElementById('img-segmentation') as HTMLImageElement;
     canvas.height = segmentation_image.naturalHeight;
     canvas.width = segmentation_image.naturalWidth;
@@ -99,13 +104,11 @@ export function shapify(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     ctx.drawImage(segmentation_image, 0, 0);
 
     const original_img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    if (!original_img) return;
-    // const image_data = original_img;
 
     // downscale image using nearest neighbor sampling
     const image_data = nearest_neighbor(original_img, segmentation_image.width, segmentation_image.height);
 
-    // data structure for storing the bounding box for each color
+    // data structure for storing the bounding box of each color
     const aabb = new Map<string, {
         'n': number
         's': number
@@ -141,17 +144,12 @@ export function shapify(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
         }
     }
 
-    console.log("aabb", aabb);
-
     // clear the canvas for redrawing
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // ensure canvas has the same size as the rendered image
-    const target_size = segmentation_image.height;
-    const scaling_factor = target_size / image_data.height;
     canvas.height = segmentation_image.height;
     canvas.width = segmentation_image.width;
-    ctx.scale(scaling_factor, scaling_factor);
 
     // draw the bounding boxes
     aabb.forEach((bb, color, map) => {
@@ -165,4 +163,5 @@ export function shapify(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
         ctx.fillRect(bb.w, bb.n, bb.e - bb.w, bb.s - bb.n);
     })
 
+    console.timeEnd('shapify');
 }

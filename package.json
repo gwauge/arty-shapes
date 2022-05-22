@@ -43,5 +43,8 @@
   },
   "overrides": {
     "autoprefixer": "10.4.5"
+  },
+  "devDependencies": {
+    "@canvas/image-data": "^1.0.0"
   }
 }

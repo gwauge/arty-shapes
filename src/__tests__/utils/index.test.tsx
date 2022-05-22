@@ -1,4 +1,12 @@
-import { hexToRgb, rgbToHex, componentToHex, i_to_xy, xy_to_i } from '../../utils';
+import ImageData from '@canvas/image-data';
+import {
+    hexToRgb,
+    rgbToHex,
+    componentToHex,
+    i_to_xy,
+    xy_to_i,
+    nearest_neighbor
+} from '../../utils';
 
 test.each([
     ["#000000", { r: 0, g: 0, b: 0 }],
@@ -40,4 +48,31 @@ test.each([
     [[1, 2] as [number, number], 84],
 ])("should convert index %i to coordinates %s", (xy, i) => {
     expect(xy_to_i(xy, 10)).toEqual(i);
+})
+
+describe('nearest-neighbor interpolation', () => {
+    let img: ImageData;
+    beforeEach(() => {
+        img = new ImageData(4, 4);
+        for (let i = 0; i < img.data.length; i += 4) {
+            img.data[i + 0] = i;
+            img.data[i + 1] = 0;
+            img.data[i + 2] = 0;
+            img.data[i + 3] = 255;
+        }
+    });
+
+    test('should have the target size', () => {
+        const scaled = nearest_neighbor(img, 2, 2);
+        expect(scaled.width).toEqual(2);
+        expect(scaled.height).toEqual(2);
+    });
+
+    test('should be correctly downsized', () => {
+        const scaled = nearest_neighbor(img, 2, 2);
+        expect(scaled.data[0]).toEqual(0);
+        expect(scaled.data[4]).toEqual(8);
+        expect(scaled.data[8]).toEqual(32);
+        expect(scaled.data[12]).toEqual(40);
+    });
 })
