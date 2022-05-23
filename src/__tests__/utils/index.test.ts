@@ -46,8 +46,16 @@ test.each([
     [[0, 0] as [number, number], 0],
     [[3, 0] as [number, number], 12],
     [[1, 2] as [number, number], 84],
-])("should convert index %i to coordinates %s", (xy, i) => {
+])("should convert coordinates %s to index %i", (xy, i) => {
     expect(xy_to_i(xy, 10)).toEqual(i);
+})
+
+test.each([
+    [[0, 0] as [number, number], 0],
+    [[3, 0] as [number, number], 3],
+    [[1, 2] as [number, number], 21],
+])("should convert coordinates %s to index %i", (xy, i) => {
+    expect(xy_to_i(xy, 10, 1)).toEqual(i);
 })
 
 describe('nearest-neighbor interpolation', () => {
