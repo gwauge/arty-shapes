@@ -9,7 +9,7 @@ export type Node = {
     y: number;
     color: string;
     parent: Node;
-    children?: Node[];
+    children?: { [index: string]: Node };
 }
 
 export function makeSet(index: string, x: number, y: number, color: string) {

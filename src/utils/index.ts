@@ -1,5 +1,6 @@
 import ImageData from '@canvas/image-data';
 import { hk } from './ccl';
+import { Node } from './union-find';
 
 export function hexToRgb(hex: string) {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -183,42 +184,47 @@ function render_image_v2(
 ) {
     const forest = hk(img);
 
-    const roots: { [key: string]: any } = {};
+    const roots: { [index: string]: Node & {
+        n: number;
+        s: number;
+        e: number;
+        w: number;
+    } } = {};
 
     Object.values(forest).forEach(vertex => {
         const { parent, index } = vertex;
         if (parent === vertex) {
-            return roots[index] = vertex;
+            return roots[index] = Object.assign(vertex, {
+                n: vertex.y,
+                s: vertex.y,
+                e: vertex.x,
+                w: vertex.x,
+            });
         }
-        parent.children = parent.children || {};
+
+        if (!parent.children) parent.children = {};
         parent.children[index] = vertex;
     })
 
-    // calculate bounding boxes
     Object.values(roots).forEach(segment => {
         // console.log("segment", segment);
-        segment.n = segment.y;
-        segment.s = segment.y;
-        segment.e = segment.x;
-        segment.w = segment.x;
-
+        
+        // calculate bounding box
         if (!segment.children) {
             console.log("no children", segment);
             return;
+        } else {
+            Object.values(segment.children).forEach(child => {
+                const { x, y } = child;
+                segment.n = Math.min(y, segment.n);
+                segment.s = Math.max(y, segment.s);
+                segment.e = Math.max(x, segment.e);
+                segment.w = Math.min(x, segment.w);
+            })
         }
-        Object.values(segment.children || {}).forEach(child => {
-            // @ts-ignore:next-line
-            const { x, y } = child;
-            segment.n = Math.min(y, segment.n);
-            segment.s = Math.max(y, segment.s);
-            segment.e = Math.max(x, segment.e);
-            segment.w = Math.min(x, segment.w);
-        })
 
         // discard small segments (smaller area than 300px)
         if ((segment.s - segment.n) * (segment.e - segment.w) < 300) return;
-
-        // draw bounding boxes
 
         // use hex color directly
         // ctx.fillStyle = segment.color;
@@ -227,6 +233,7 @@ function render_image_v2(
         const rgb = hexToRgb(segment.color);
         ctx.fillStyle = `rgba(${rgb?.r}, ${rgb?.g}, ${rgb?.b}, 0.5)`; // fill with color
 
+        // draw bounding boxes
         ctx.fillRect(segment.w, segment.n, segment.e - segment.w, segment.s - segment.n);
     })
 }

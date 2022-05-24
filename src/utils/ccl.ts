@@ -3,7 +3,7 @@
  */
 
 import ImageData from '@canvas/image-data';
-import { union, makeSet } from './union-find';
+import { union, makeSet, Node } from './union-find';
 
 import { i_to_xy, rgbToHex } from './';
 
@@ -29,7 +29,7 @@ function indexString([x, y]: [number, number]) {
  */
 export function hk(img: ImageData) {
     // const labels = new Uint8ClampedArray(img.data.length / 4);
-    const forest: { [key: string]: any } = {};
+    const forest: { [key: string]: Node } = {};
     const background = { r: 0, g: 0, b: 0, a: 255 };
 
     // first pass
@@ -47,7 +47,7 @@ export function hk(img: ImageData) {
 
         const [x, y] = i_to_xy(i, img.width);
 
-        const index = `${x}-${y}`;
+        const index = indexString([x, y]);
         const tree = makeSet(index, x, y, rgbToHex(r, g, b));
         forest[index] = tree;
 
