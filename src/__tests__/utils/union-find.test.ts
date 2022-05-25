@@ -5,15 +5,15 @@ let node1: Node
 let node2: Node
 
 beforeEach(() => {
-    node0 = makeSet('0-0', 0, 0, '#000000');
-    node1 = makeSet('1-1', 1, 1, '#111111');
-    node2 = makeSet('2-2', 2, 2, '#222222');
+    node0 = makeSet(0, 0, 0, '#000000');
+    node1 = makeSet(1, 1, 1, '#111111');
+    node2 = makeSet(2, 2, 2, '#222222');
 })
 
 test("should make set", () => {
     expect(node0.parent).toBe(node0);
     expect(node0.rank).toBe(0);
-    expect(node0.index).toBe('0-0');
+    expect(node0.index).toBe(0);
 })
 
 test("should union", () => {

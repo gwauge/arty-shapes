@@ -41,10 +41,14 @@
       "last 1 safari version"
     ]
   },
+  "jest": {
+    "resetMocks": false
+  },
   "overrides": {
     "autoprefixer": "10.4.5"
   },
   "devDependencies": {
-    "@canvas/image-data": "^1.0.0"
+    "@canvas/image-data": "^1.0.0",
+    "jest-canvas-mock": "^2.4.0"
   }
 }

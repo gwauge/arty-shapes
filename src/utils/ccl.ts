@@ -5,59 +5,55 @@
 import ImageData from '@canvas/image-data';
 import { union, makeSet, Node } from './union-find';
 
-import { i_to_xy, rgbToHex } from './';
+import { i_to_xy, rgbToHex, xy_to_i } from './';
 
-function get_neighbors(img: ImageData, i: number, connectivity: 4 | 8 = 8): [number, number][] {
-    const [x, y] = i_to_xy(i, img.width);
-    const neighbors = [];
-
-    if (connectivity === 8) neighbors.push([x - 1, y - 1] as [number, number]);
-    neighbors.push([x, y - 1] as [number, number]);
-    if (connectivity === 8) neighbors.push([x + 1, y - 1] as [number, number]);
-    neighbors.push([x - 1, y] as [number, number]);
-
-    return neighbors;
-}
-
-function indexString([x, y]: [number, number]) {
-    return `${x}-${y}`;
-}
+const INDICES_PER_PIXEL = 4; // rgba
 
 /**
- * Hoshen–Kopelman connected-component labeling algorithm. Based on {@link https://en.wikipedia.org/wiki/Connected-component_labeling Connected-component labeling}.
+ * Hoshen–Kopelman connected-component labeling algorithm. Loosely based on {@link https://en.wikipedia.org/wiki/Connected-component_labeling Connected-component labeling}.
  * @param img 
  */
-export function hk(img: ImageData) {
-    // const labels = new Uint8ClampedArray(img.data.length / 4);
-    const forest: { [key: string]: Node } = {};
-    const background = { r: 0, g: 0, b: 0, a: 255 };
+export default function hk(img: ImageData) {
+    const forest: Array<Node> = new Array(img.width * img.height);
 
-    // first pass
-    for (let i = 0; i < img.data.length; i += 4) {
+    // first pass - connect the components
+    for (let i = 0; i < img.data.length; i += INDICES_PER_PIXEL) {
         const r = img.data[i + 0];
         const g = img.data[i + 1];
         const b = img.data[i + 2];
-        // const a = img.data[i + 3];
-
-        // skip if background
-        if (r === background.r
-            && g === background.g
-            && b === background.b
-        ) continue;
 
         const [x, y] = i_to_xy(i, img.width);
 
-        const index = indexString([x, y]);
+        const index = xy_to_i([x, y], img.width, 1);
         const tree = makeSet(index, x, y, rgbToHex(r, g, b));
         forest[index] = tree;
 
-        const neighbors = get_neighbors(img, i, 4).map(indexString);
+        // avoid goind back to last pixel on preivous row
+        const neighbors = [];
+        if (x > 0) neighbors.push(xy_to_i([x - 1, y], img.width, 1));
+        if (y > 0) neighbors.push(xy_to_i([x, y - 1], img.width, 1));
+
         for (const neighbor_index of neighbors) {
             const neighbor = forest[neighbor_index];
             if (neighbor?.color === tree.color) union(tree, neighbor);
         }
     }
 
+    // second pass - find roots
+    const roots: { [index: number]: Node } = {};
+    forest.forEach(vertex => {
+        const { parent, index } = vertex;
+        if (parent === vertex) return roots[index] = vertex; // is root
 
-    return forest;
+        if (!parent.children) parent.children = [];
+        parent.children.push(vertex);
+
+        // keep track of bounding box
+        parent.n = Math.min(vertex.y, parent.n);
+        parent.s = Math.max(vertex.y, parent.s);
+        parent.e = Math.max(vertex.x, parent.e);
+        parent.w = Math.min(vertex.x, parent.w);
+    })
+
+    return Object.values(roots);
 }

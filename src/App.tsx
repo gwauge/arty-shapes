@@ -1,7 +1,7 @@
 import React from 'react';
 import './styles/App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { shapify } from './utils';
+import shapify from './utils/shapify';
 
 const HEIGHT = 250;
 const TEST_IMG = 2;

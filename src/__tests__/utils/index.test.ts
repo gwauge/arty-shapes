@@ -5,7 +5,8 @@ import {
     componentToHex,
     i_to_xy,
     xy_to_i,
-    nearest_neighbor
+    nearest_neighbor,
+    drawRectangle
 } from '../../utils';
 
 test.each([
@@ -84,3 +85,50 @@ describe('nearest-neighbor interpolation', () => {
         expect(scaled.data[12]).toEqual(40);
     });
 })
+
+/*
+test('should draw rectangle', () => {
+    const WIDTH = 10;
+    const HEIGHT = 10;
+
+    const canvas = document.createElement('canvas');
+    canvas.height = WIDTH;
+    canvas.width = HEIGHT;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Could not get canvas context');
+    ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+    drawRectangle(ctx, {
+        n: 0,
+        s: HEIGHT / 2,
+        w: 0,
+        e: WIDTH / 2,
+        color: '#ff0000'
+    });
+
+    const img = ctx.getImageData(0, 0, WIDTH, HEIGHT);
+    console.log(img.data);
+
+    let i = xy_to_i([0, 0], img.width);
+    console.log(img.data[i + 0], img.data[i + 1], img.data[i + 2], img.data[i + 3]);
+    expect(img.data[i + 0]).toEqual(255);
+    expect(img.data[i + 1]).toEqual(0);
+    expect(img.data[i + 2]).toEqual(0);
+    expect(img.data[i + 3]).toEqual(128);
+
+    drawRectangle(ctx, {
+        n: 0,
+        s: HEIGHT / 2,
+        w: 0,
+        e: WIDTH / 2,
+        color: '#ff0000'
+    });
+
+    i = xy_to_i([2, 2], img.width);
+    expect(img.data[i + 0]).toEqual(250);
+    expect(img.data[i + 1]).toEqual(0);
+    expect(img.data[i + 2]).toEqual(0);
+    expect(img.data[i + 3]).toEqual(128);
+})
+*/

@@ -1,24 +1,35 @@
 /**
- * @file Union-find data structure. Implementation credits to {@link https://github.com/manubb/union-find | Manuel Baclet}.
+ * @file Union-find data structure. Implementation base on to {@link https://en.wikipedia.org/wiki/Disjoint-set_data_structure Wikipedia >> Disjoint-set data structure}.
  */
+
+export type BoundingBox = {
+    n: number;
+    s: number;
+    e: number;
+    w: number;
+}
 
 export type Node = {
     rank: number;
-    index: string;
+    index: number;
     x: number;
     y: number;
     color: string;
     parent: Node;
-    children?: { [index: string]: Node };
-}
+    children?: Array<Node>;
+} & BoundingBox;
 
-export function makeSet(index: string, x: number, y: number, color: string) {
+export function makeSet(index: number, x: number, y: number, color: string) {
     const singleton = {
         rank: 0,
         index,
         x,
         y,
-        color
+        color,
+        n: y,
+        s: y,
+        e: x,
+        w: x,
     };
 
     // @ts-ignore
@@ -28,22 +39,29 @@ export function makeSet(index: string, x: number, y: number, color: string) {
 };
 
 export function find(node: Node) {
-    if (node.parent !== node) {
-        node.parent = find(node.parent);
+    while (node.parent !== node) {
+        node.parent = node.parent.parent;
+        node = node.parent;
     }
 
-    return node.parent;
+    return node;
 };
 
 export function union(node1: Node, node2: Node) {
-    const root1 = find(node1);
-    const root2 = find(node2);
-    if (root1 !== root2) {
-        if (root1.rank < root2.rank) {
-            root1.parent = root2;
-        } else {
-            root2.parent = root1;
-            if (root1.rank === root2.rank) root1.rank += 1;
-        }
+    let x = find(node1);
+    let y = find(node2);
+
+    if (x === y) return; // already in the same set
+
+    // ensure that x has rank at least as large as that of y
+    if (x.rank < y.rank) {
+        const temp = x;
+        x = y;
+        y = temp;
+    }
+
+    y.parent = x;
+    if (x.rank === y.rank) {
+        x.rank++;
     }
 };

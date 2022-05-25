@@ -1,6 +1,6 @@
 import ImageData from '@canvas/image-data';
-import { hk } from './ccl';
-import { Node } from './union-find';
+
+import { BoundingBox } from './union-find';
 
 export function hexToRgb(hex: string) {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -19,21 +19,6 @@ export function componentToHex(c: number) {
 export function rgbToHex(r: number, g: number, b: number) {
     return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
 }
-
-/*
-early version of the segment data structure
-type Segment = {
-    id: number,
-    aabb: {
-        'n': number
-        's': number
-        'e': number
-        'w': number
-    },
-    segmentation_color: string,
-
-}
-*/
 
 /**
  * Resize an image using nearest-neighbor sampling.
@@ -93,147 +78,14 @@ export function xy_to_i([x, y]: [number, number], width: number, per_pixel = 4) 
     return y * width * per_pixel + x * per_pixel;
 }
 
-export function shapify(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
-    console.time('shapify');
-
-    const canvas = document.getElementById('as-canvas') as HTMLCanvasElement;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // draw image to canvas
-    const segmentation_image = document.getElementById('img-segmentation') as HTMLImageElement;
-    canvas.height = segmentation_image.naturalHeight;
-    canvas.width = segmentation_image.naturalWidth;
-
-    ctx.drawImage(segmentation_image, 0, 0);
-
-    const original_img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-    // clear the canvas for redrawing
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // ensure canvas has the same size as the rendered image
-    canvas.height = segmentation_image.height;
-    canvas.width = segmentation_image.width;
-
-    // downscale image using nearest neighbor sampling
-    const image_data = nearest_neighbor(original_img, segmentation_image.width, segmentation_image.height);
-
-    // render_image_v1(ctx, image_data);
-    render_image_v2(ctx, image_data);
-
-    console.timeEnd('shapify');
-}
-
-export function render_image_v1(
+export function drawRectangle(
     ctx: CanvasRenderingContext2D,
-    img: ImageData
+    segment: BoundingBox & { color: string },
+    alpha: number = 0.5
 ) {
-    // data structure for storing the bounding box of each color
-    const aabb = new Map<string, {
-        'n': number
-        's': number
-        'e': number
-        'w': number
-    }>();
+    // use rgba to control the alpha value 
+    const rgb = hexToRgb(segment.color);
+    ctx.fillStyle = `rgba(${rgb?.r}, ${rgb?.g}, ${rgb?.b}, ${alpha})`; // fill with color
 
-    // calculate bounding boxes
-    for (let i = 0; i < img?.data.length; i += 4) {
-        const r = img.data[i + 0];
-        const g = img.data[i + 1];
-        const b = img.data[i + 2];
-        // const a = image_data.data[i + 3];
-
-        const [x, y] = i_to_xy(i, img.width);
-
-        const hex = rgbToHex(r, g, b);
-        const old_bb = aabb.get(hex);
-        if (!old_bb) {
-            aabb.set(hex, {
-                'n': y,
-                's': y,
-                'e': x,
-                'w': x,
-            });
-        } else {
-            aabb.set(hex, {
-                'n': old_bb.n,
-                's': y,
-                'e': Math.max(old_bb.e, x),
-                'w': Math.min(old_bb.w, x),
-            })
-        }
-    }
-
-    // draw the bounding boxes
-    aabb.forEach((bb, color, map) => {
-        // use rgba to control the alpha value 
-        // const rgb = hexToRgb(color);
-        // ctx.fillStyle = `rgba(${rgb?.r}, ${rgb?.g}, ${rgb?.b}, 1)`; // fill with color
-
-        // use hex color directly
-        ctx.fillStyle = color;
-
-        ctx.fillRect(bb.w, bb.n, bb.e - bb.w, bb.s - bb.n);
-    })
-}
-
-function render_image_v2(
-    ctx: CanvasRenderingContext2D,
-    img: ImageData
-) {
-    const forest = hk(img);
-
-    const roots: { [index: string]: Node & {
-        n: number;
-        s: number;
-        e: number;
-        w: number;
-    } } = {};
-
-    Object.values(forest).forEach(vertex => {
-        const { parent, index } = vertex;
-        if (parent === vertex) {
-            return roots[index] = Object.assign(vertex, {
-                n: vertex.y,
-                s: vertex.y,
-                e: vertex.x,
-                w: vertex.x,
-            });
-        }
-
-        if (!parent.children) parent.children = {};
-        parent.children[index] = vertex;
-    })
-
-    Object.values(roots).forEach(segment => {
-        // console.log("segment", segment);
-        
-        // calculate bounding box
-        if (!segment.children) {
-            console.log("no children", segment);
-            return;
-        } else {
-            Object.values(segment.children).forEach(child => {
-                const { x, y } = child;
-                segment.n = Math.min(y, segment.n);
-                segment.s = Math.max(y, segment.s);
-                segment.e = Math.max(x, segment.e);
-                segment.w = Math.min(x, segment.w);
-            })
-        }
-
-        // discard small segments (smaller area than 300px)
-        if ((segment.s - segment.n) * (segment.e - segment.w) < 300) return;
-
-        // use hex color directly
-        // ctx.fillStyle = segment.color;
-
-        // use rgba to control the alpha value 
-        const rgb = hexToRgb(segment.color);
-        ctx.fillStyle = `rgba(${rgb?.r}, ${rgb?.g}, ${rgb?.b}, 0.5)`; // fill with color
-
-        // draw bounding boxes
-        ctx.fillRect(segment.w, segment.n, segment.e - segment.w, segment.s - segment.n);
-    })
+    ctx.fillRect(segment.w, segment.n, segment.e - segment.w, segment.s - segment.n);
 }
