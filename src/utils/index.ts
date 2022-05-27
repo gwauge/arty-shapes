@@ -62,7 +62,7 @@ export function i_to_xy(i: number, width: number) {
     return [
         Math.floor((i / 4) % width),
         Math.floor((i / 4) / width)
-    ]
+    ] as [number, number];
 }
 
 /**
@@ -78,6 +78,14 @@ export function xy_to_i([x, y]: [number, number], width: number, per_pixel = 4) 
     return y * width * per_pixel + x * per_pixel;
 }
 
+export function clone_image(img: ImageData) {
+    return new ImageData(
+        new Uint8ClampedArray(img.data),
+        img.width,
+        img.height
+    );
+}
+
 export function drawRectangle(
     ctx: CanvasRenderingContext2D,
     segment: BoundingBox & { color: string },
@@ -88,4 +96,42 @@ export function drawRectangle(
     ctx.fillStyle = `rgba(${rgb?.r}, ${rgb?.g}, ${rgb?.b}, ${alpha})`; // fill with color
 
     ctx.fillRect(segment.w, segment.n, segment.e - segment.w, segment.s - segment.n);
+}
+
+
+export function fillLines(ctx: CanvasRenderingContext2D, coords: Array<[number, number]>, color: string, width: number = 1) {
+    // draw lines between points
+    ctx.beginPath();
+    ctx.fillStyle = color;
+    ctx.lineWidth = width;
+    ctx.moveTo(coords[0][0], coords[0][1]);
+    coords
+        .forEach(point => {
+            ctx.lineTo(point[0], point[1]);
+        })
+    ctx.closePath();
+    ctx.fill();
+}
+
+export function strokeLines(ctx: CanvasRenderingContext2D, coords: Array<[number, number]>, color: string, width: number = 1) {
+    // draw lines between points
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.moveTo(coords[0][0], coords[0][1]);
+    coords
+        .forEach(point => {
+            ctx.lineTo(point[0], point[1]);
+        })
+    // ctx.lineTo(coords[0][0], coords[0][1]);
+    ctx.closePath();
+    ctx.stroke();
+}
+
+export function fillCircle(ctx: CanvasRenderingContext2D, coords: [number, number], color: string, radius = 2) {
+    ctx.beginPath();
+    ctx.arc(coords[0], coords[1], radius, 0, 2 * Math.PI, false);
+    ctx.lineWidth = 3;
+    ctx.fillStyle = color;
+    ctx.fill();
 }

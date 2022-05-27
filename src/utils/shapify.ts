@@ -1,10 +1,18 @@
+import monotoneChainConvexHull from 'monotone-chain-convex-hull';
+import simplify from 'simplify-js';
+
 import hk from './ccl';
 import {
     nearest_neighbor,
-    i_to_xy,
-    rgbToHex,
-    drawRectangle
+    // drawRectangle,
+    // xy_to_i,
+    // hexToRgb,
+    fillCircle,
+    fillLines,
+    // strokeLines
 } from './';
+
+const DISCARD_THRESHOLD = 0.01;
 
 export default function shapify(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     console.time('shapify');
@@ -38,53 +46,6 @@ export default function shapify(e: React.MouseEvent<HTMLButtonElement, MouseEven
     console.timeEnd('shapify');
 }
 
-export function render_image_v1(
-    ctx: CanvasRenderingContext2D,
-    img: ImageData
-) {
-    // data structure for storing the bounding box of each color
-    const aabb = new Map<string, {
-        'n': number
-        's': number
-        'e': number
-        'w': number
-    }>();
-
-    // calculate bounding boxes
-    for (let i = 0; i < img?.data.length; i += 4) {
-        const r = img.data[i + 0];
-        const g = img.data[i + 1];
-        const b = img.data[i + 2];
-        // const a = image_data.data[i + 3];
-
-        const [x, y] = i_to_xy(i, img.width);
-
-        const hex = rgbToHex(r, g, b);
-        const old_bb = aabb.get(hex);
-        if (!old_bb) {
-            aabb.set(hex, {
-                'n': y,
-                's': y,
-                'e': x,
-                'w': x,
-            });
-        } else {
-            aabb.set(hex, {
-                'n': old_bb.n,
-                's': y,
-                'e': Math.max(old_bb.e, x),
-                'w': Math.min(old_bb.w, x),
-            })
-        }
-    }
-
-    // draw the bounding boxes
-    console.log("segments:", Object.keys(aabb).length);
-    aabb.forEach((bb, color, map) => {
-        drawRectangle(ctx, Object.assign(bb, { color: color }))
-    })
-}
-
 export function render_image_v2(
     ctx: CanvasRenderingContext2D,
     img: ImageData
@@ -92,13 +53,28 @@ export function render_image_v2(
     const segments = hk(img);
 
     // draw the bounding boxes
+
+    console.log("height", img.height, "width", img.width);
+
     console.log("segments:", segments.length);
     segments
         // .sort((a, b) => b.rank - a.rank)
         .forEach(segment => {
-            // discard small segments (smaller area than 300px)
-            if ((segment.s - segment.n) * (segment.e - segment.w) < 300) return;
+            fillCircle(ctx, [segment.x, segment.y], '#ffffff', 2);
 
-            drawRectangle(ctx, segment);
+            // discard small segments (area smaller than a predefined value relative to the size of the image)
+            if ((segment.s - segment.n) * (segment.e - segment.w) < (img.height * img.width) * DISCARD_THRESHOLD) return;
+
+            console.log("segment:", segment.color, "children", segment.children?.length, "edge points", segment.edgePoints?.length);
+
+            if (!segment.edgePoints) throw new Error("edgePoints is undefined");
+            const convex_hull = monotoneChainConvexHull(segment.edgePoints);
+            console.log("convex hull:", convex_hull.length);
+            // strokeLines(ctx, convex_hull, segment.color, 1);
+
+            const simplified = simplify(convex_hull.map(p => ({ x: p[0], y: p[1] })), 20);
+            fillLines(ctx, simplified.map((p: { x: number, y: number }) => [p.x, p.y]), segment.color, 1);
+
+            // drawRectangle(ctx, segment);
         })
 }

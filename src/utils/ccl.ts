@@ -24,18 +24,20 @@ export default function hk(img: ImageData) {
 
         const [x, y] = i_to_xy(i, img.width);
 
+        // generate an equivalence object
         const index = xy_to_i([x, y], img.width, 1);
         const tree = makeSet(index, x, y, rgbToHex(r, g, b));
         forest[index] = tree;
 
-        // avoid goind back to last pixel on preivous row
+        // avoid going back to last pixel on preivous row
         const neighbors = [];
         if (x > 0) neighbors.push(xy_to_i([x - 1, y], img.width, 1));
         if (y > 0) neighbors.push(xy_to_i([x, y - 1], img.width, 1));
 
+        // check if neighbors are connected
         for (const neighbor_index of neighbors) {
             const neighbor = forest[neighbor_index];
-            if (neighbor?.color === tree.color) union(tree, neighbor);
+            if (neighbor.color === tree.color) union(tree, neighbor);
         }
     }
 
@@ -47,6 +49,39 @@ export default function hk(img: ImageData) {
 
         if (!parent.children) parent.children = [];
         parent.children.push(vertex);
+        if (!parent.edgePoints) parent.edgePoints = [];
+
+        // check for edge pixels (i.e. pixel whose neighbor is of another color)
+
+        function set_edge(node: Node) {
+            if (!node.isEdge) {
+                node.parent.edgePoints?.push([node.x, node.y]);
+                node.isEdge = true;
+            }
+        }
+
+        // check left
+        if (vertex.x > 0 && vertex.x < img.width - 1) {
+            const left = forest[index - 1];
+            if (left.color !== vertex.color) {
+                set_edge(vertex); // self is edge
+
+                // left neighbor is edge point
+                if (!left.parent.edgePoints) left.parent.edgePoints = [];
+                set_edge(left);
+            }
+        } else set_edge(vertex); // pixels at the edge of the image are always "edge_pixels"
+
+        // check top
+        if (vertex.y > 0 && vertex.y < img.height - 1) {
+            const top = forest[index - img.width];
+            if (top.color !== vertex.color) {
+                set_edge(vertex); // self is edge
+
+                if (!top.parent.edgePoints) top.parent.edgePoints = [];
+                set_edge(top);
+            }
+        } else set_edge(vertex);
 
         // keep track of bounding box
         parent.n = Math.min(vertex.y, parent.n);

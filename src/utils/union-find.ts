@@ -17,6 +17,8 @@ export type Node = {
     color: string;
     parent: Node;
     children?: Array<Node>;
+    edgePoints?: Array<[number, number]>;
+    isEdge: boolean;
 } & BoundingBox;
 
 export function makeSet(index: number, x: number, y: number, color: string) {
@@ -30,6 +32,7 @@ export function makeSet(index: number, x: number, y: number, color: string) {
         s: y,
         e: x,
         w: x,
+        isEdge: false,
     };
 
     // @ts-ignore
