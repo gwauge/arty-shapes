@@ -4,12 +4,7 @@ import simplify from 'simplify-js';
 import hk from './ccl';
 import {
     nearest_neighbor,
-    // drawRectangle,
-    // xy_to_i,
-    // hexToRgb,
-    fillCircle,
     fillLines,
-    // strokeLines
 } from './';
 
 const DISCARD_THRESHOLD = 0.01;
@@ -39,42 +34,38 @@ export default function shapify(e: React.MouseEvent<HTMLButtonElement, MouseEven
 
     // downscale image using nearest neighbor sampling
     const image_data = nearest_neighbor(original_img, segmentation_image.width, segmentation_image.height);
+    console.log("height", image_data.height, "width", image_data.width);
 
     // render_image_v1(ctx, image_data);
-    render_image_v2(ctx, image_data);
+    draw_segments(ctx, image_data);
 
     console.timeEnd('shapify');
 }
 
-export function render_image_v2(
+export function draw_segments(
     ctx: CanvasRenderingContext2D,
     img: ImageData
 ) {
+
     const segments = hk(img);
-
-    // draw the bounding boxes
-
-    console.log("height", img.height, "width", img.width);
 
     console.log("segments:", segments.length);
     segments
-        // .sort((a, b) => b.rank - a.rank)
+        .sort((a, b) => (b.s - b.n) * (b.e - b.w) - (a.s - a.n) * (a.e - a.w))
         .forEach(segment => {
-            fillCircle(ctx, [segment.x, segment.y], '#ffffff', 2);
-
             // discard small segments (area smaller than a predefined value relative to the size of the image)
             if ((segment.s - segment.n) * (segment.e - segment.w) < (img.height * img.width) * DISCARD_THRESHOLD) return;
 
-            console.log("segment:", segment.color, "children", segment.children?.length, "edge points", segment.edgePoints?.length);
+            // fillCircle(ctx, [segment.x, segment.y], '#ff0000', 2); // draw the root of each segment
 
-            if (!segment.edgePoints) throw new Error("edgePoints is undefined");
-            const convex_hull = monotoneChainConvexHull(segment.edgePoints);
-            console.log("convex hull:", convex_hull.length);
-            // strokeLines(ctx, convex_hull, segment.color, 1);
+            console.log("segment:", segment.color, "\n\tchildren:", segment.children?.length, "\n\txy:", segment.x, segment.y);
+
+            if (!segment.children) throw new Error("children is undefined");
+            const convex_hull = monotoneChainConvexHull(segment.children.map(c => [c.x, c.y]));
+            // fillLines(ctx, convex_hull, segment.color, 1);
 
             const simplified = simplify(convex_hull.map(p => ({ x: p[0], y: p[1] })), 20);
             fillLines(ctx, simplified.map((p: { x: number, y: number }) => [p.x, p.y]), segment.color, 1);
-
-            // drawRectangle(ctx, segment);
         })
+
 }

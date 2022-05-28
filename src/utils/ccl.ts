@@ -47,47 +47,20 @@ export default function hk(img: ImageData) {
         const { parent, index } = vertex;
         if (parent === vertex) return roots[index] = vertex; // is root
 
-        if (!parent.children) parent.children = [];
-        parent.children.push(vertex);
-        if (!parent.edgePoints) parent.edgePoints = [];
-
-        // check for edge pixels (i.e. pixel whose neighbor is of another color)
-
-        function set_edge(node: Node) {
-            if (!node.isEdge) {
-                node.parent.edgePoints?.push([node.x, node.y]);
-                node.isEdge = true;
-            }
+        // find the highest parent
+        let p = parent;
+        while (p.parent !== p) {
+            p = p.parent;
         }
 
-        // check left
-        if (vertex.x > 0 && vertex.x < img.width - 1) {
-            const left = forest[index - 1];
-            if (left.color !== vertex.color) {
-                set_edge(vertex); // self is edge
-
-                // left neighbor is edge point
-                if (!left.parent.edgePoints) left.parent.edgePoints = [];
-                set_edge(left);
-            }
-        } else set_edge(vertex); // pixels at the edge of the image are always "edge_pixels"
-
-        // check top
-        if (vertex.y > 0 && vertex.y < img.height - 1) {
-            const top = forest[index - img.width];
-            if (top.color !== vertex.color) {
-                set_edge(vertex); // self is edge
-
-                if (!top.parent.edgePoints) top.parent.edgePoints = [];
-                set_edge(top);
-            }
-        } else set_edge(vertex);
+        if (!p.children) p.children = [];
+        p.children.push(vertex);
 
         // keep track of bounding box
-        parent.n = Math.min(vertex.y, parent.n);
-        parent.s = Math.max(vertex.y, parent.s);
-        parent.e = Math.max(vertex.x, parent.e);
-        parent.w = Math.min(vertex.x, parent.w);
+        p.n = Math.min(vertex.y, p.n);
+        p.s = Math.max(vertex.y, p.s);
+        p.e = Math.max(vertex.x, p.e);
+        p.w = Math.min(vertex.x, p.w);
     })
 
     return Object.values(roots);
