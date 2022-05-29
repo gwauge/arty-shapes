@@ -135,3 +135,17 @@ export function fillCircle(ctx: CanvasRenderingContext2D, coords: [number, numbe
     ctx.fillStyle = color;
     ctx.fill();
 }
+
+export function getImageData(img_id: string) {
+    const img = document.getElementById(img_id) as HTMLImageElement;
+    if (!img) throw new Error("image not found: " + img_id);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error("could not get context for image: " + img_id);
+
+    ctx.drawImage(img, 0, 0);
+    return ctx.getImageData(0, 0, img.naturalWidth, img.naturalHeight);
+}
