@@ -5,7 +5,7 @@
 import ImageData from '@canvas/image-data';
 import { union, makeSet, Node } from './union-find';
 
-import { i_to_xy, rgbToHex, xy_to_i } from './';
+import { i_to_xy, xy_to_i } from './';
 
 const INDICES_PER_PIXEL = 4; // rgba
 
