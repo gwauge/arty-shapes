@@ -2,6 +2,8 @@
  * @file Union-find data structure. Implementation base on to {@link https://en.wikipedia.org/wiki/Disjoint-set_data_structure Wikipedia >> Disjoint-set data structure}.
  */
 
+import { rgbToHex } from "./";
+
 export type BoundingBox = {
     n: number;
     s: number;
@@ -15,17 +17,25 @@ export type Node = {
     x: number;
     y: number;
     color: string;
+    r: number,
+    g: number,
+    b: number,
     parent: Node;
     children?: Array<Node>;
 } & BoundingBox;
 
-export function makeSet(index: number, x: number, y: number, color: string) {
+export type MandatoryNodeKeys = Exclude<keyof Node, "children">;
+
+export function makeSet(index: number, x: number, y: number, r: number, g: number, b: number): Node {
     const singleton = {
         rank: 0,
         index,
         x,
         y,
-        color,
+        r,
+        g,
+        b,
+        color: rgbToHex(r, g, b),
         n: y,
         s: y,
         e: x,

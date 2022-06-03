@@ -39,11 +39,12 @@ function App() {
 
                 <div className='mt-2'>
                   <label className='form-label' htmlFor='input-color'>Color selection mode</label>
-                  <select id='input-color' className='form-select'>
+                  <select id='input-color' className='form-select' defaultValue={"representative"}>
                     <option value="average">Average</option>
                     <option value="root">Root</option>
-                    <option value="center" selected>Center</option>
-                    <option value="segmentation" selected>Segmentation</option>
+                    <option value="center">Center</option>
+                    <option value="segmentation">Segmentation</option>
+                    <option value="representative">Representative</option>
                   </select>
                 </div>
               </div>

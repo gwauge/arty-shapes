@@ -26,7 +26,7 @@ export default function hk(img: ImageData) {
 
         // generate an equivalence object
         const index = xy_to_i([x, y], img.width, 1);
-        const tree = makeSet(index, x, y, rgbToHex(r, g, b));
+        const tree = makeSet(index, x, y, r, g, b);
         forest[index] = tree;
 
         // avoid going back to last pixel on preivous row

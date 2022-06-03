@@ -8,6 +8,7 @@ import {
     getImageData,
     xy_to_i,
     rgbToHex,
+    // hexToRgb,
     // fillCircle,
 } from './';
 import { Node } from './union-find';
@@ -74,6 +75,9 @@ export function draw_segments(
         case "center":
             center_color(segments, original_img);
             break;
+        case "representative":
+            representative_color(segments, original_img);
+            break;
         case "segmentation":
             break;
         default:
@@ -97,6 +101,7 @@ export function draw_segments(
 
             const simplified = simplify(convex_hull.map(p => ({ x: p[0], y: p[1] })), tolerance);
             fillLines(ctx, simplified.map((p: { x: number, y: number }) => [p.x, p.y]), segment.color, 1);
+            
         })
 }
 
@@ -180,4 +185,41 @@ function center_color(segments: Node[], original_img: ImageData) {
             b,
         );
     })
+}
+
+/** Use a histogram to find the value for each channel that occurs most often in each segment. */
+function representative_color(segments: Node[], original_img: ImageData) {
+    segments.forEach((root, i) => {
+        if (!root.children) return;
+
+        const histogram = {
+            r: new Uint32Array(256),
+            g: new Uint32Array(256),
+            b: new Uint32Array(256),
+        }
+
+        let max_index_r = 0;
+        let max_index_g = 0;
+        let max_index_b = 0;
+
+        // iterate over each pixel of the segment
+        root.children.forEach(child => {
+            // get value of each channel
+            const r = original_img.data[xy_to_i([child.x, child.y], original_img.width) + 0];
+            const g = original_img.data[xy_to_i([child.x, child.y], original_img.width) + 1];
+            const b = original_img.data[xy_to_i([child.x, child.y], original_img.width) + 2];
+
+            // update histogram
+            histogram.r[r]++;
+            histogram.g[g]++;
+            histogram.b[b]++;
+
+            // update the max index for each channel
+            if (histogram.r[r] > histogram.r[max_index_r]) max_index_r = r;
+            if (histogram.g[g] > histogram.g[max_index_g]) max_index_g = g;
+            if (histogram.b[b] > histogram.b[max_index_b]) max_index_b = b;
+        });
+
+        root.color = rgbToHex(max_index_r, max_index_g, max_index_b);
+    });
 }
