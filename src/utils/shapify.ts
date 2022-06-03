@@ -1,5 +1,6 @@
 import monotoneChainConvexHull from 'monotone-chain-convex-hull';
 import simplify from 'simplify-js';
+import concaveman from 'concaveman';
 
 import hk from './ccl';
 import {
@@ -51,11 +52,12 @@ export function draw_segments(
     img: ImageData
 ) {
 
+    console.time("ccl");
     const segments = hk(img);
+    console.timeEnd("ccl");
 
     // calculate appropriate color
     const original_img = nearest_neighbor(getImageData("img-input"), img.width, img.height);
-    console.log(original_img.width, original_img.height);
 
     const discard_threshold_slider = document.getElementById('input-discard') as HTMLInputElement;
     const discard_threshold = parseFloat(discard_threshold_slider.value);
@@ -83,7 +85,9 @@ export function draw_segments(
         default:
             break;
     }
-
+        
+    const segmentation_mode_select = document.getElementById('input-segmentation') as HTMLSelectElement;
+        
     console.log("segments:", segments.length);
     segments
         .sort((a, b) => (b.s - b.n) * (b.e - b.w) - (a.s - a.n) * (a.e - a.w)) // sort by size of the bounding box
@@ -93,15 +97,32 @@ export function draw_segments(
 
             // fillCircle(ctx, [segment.x, segment.y], '#ff0000', 2); // draw the root of each segment
 
-            // console.log("segment:", segment.color, "\n\tchildren:", segment.children?.length, "\n\txy:", segment.x, segment.y);
-
             if (!segment.children) return;
-            const convex_hull = monotoneChainConvexHull(segment.children.map(c => [c.x, c.y]));
-            // fillLines(ctx, convex_hull, segment.color, 1);
 
-            const simplified = simplify(convex_hull.map(p => ({ x: p[0], y: p[1] })), tolerance);
-            fillLines(ctx, simplified.map((p: { x: number, y: number }) => [p.x, p.y]), segment.color, 1);
-            
+            let points: [number, number][] = [];
+            switch (segmentation_mode_select.value) {
+                case "aabb":
+                    points = [
+                        [segment.w, segment.n],
+                        [segment.e, segment.n],
+                        [segment.e, segment.s],
+                        [segment.w, segment.s],
+                    ];
+                    break;
+                case "convex":
+                    points = monotoneChainConvexHull(segment.children.map(c => [c.x, c.y]));
+                    break;
+                case "concave":
+                    points = concaveman(segment.children.map(c => [c.x, c.y])) as [number, number][];
+                    break;
+                default:
+                    throw new Error("invalid segmentation mode: " + segmentation_mode_select.value);
+            }
+
+            if (tolerance > 0) {
+                const simplified = simplify(points.map(p => ({ x: p[0], y: p[1] })), tolerance);
+                fillLines(ctx, simplified.map((p: { x: number, y: number }) => [p.x, p.y]), segment.color, 1);
+            } else fillLines(ctx, points, segment.color, 1);
         })
 }
 
@@ -123,11 +144,6 @@ function average_color(segments: Node[], original_img: ImageData) {
             b += original_img.data[index + 2];
         });
 
-        console.log("index:", i, "color:",
-            Math.round(r / root.children.length),
-            Math.round(g / root.children.length),
-            Math.round(b / root.children.length));
-
         root.color = rgbToHex(
             Math.round(r / root.children.length),
             Math.round(g / root.children.length),
@@ -147,11 +163,6 @@ function root_color(segments: Node[], original_img: ImageData) {
         const r = original_img.data[index + 0];
         const g = original_img.data[index + 1];
         const b = original_img.data[index + 2];
-
-        console.log("index:", i, "color:",
-            r,
-            g,
-            b);
 
         root.color = rgbToHex(
             r,
@@ -175,9 +186,6 @@ function center_color(segments: Node[], original_img: ImageData) {
         const r = original_img.data[index + 0];
         const g = original_img.data[index + 1];
         const b = original_img.data[index + 2];
-
-        console.log("i:", i, "wens:", w, e, n, s, "coords:", x, y, "color:",
-            rgbToHex(r, g, b));
 
         root.color = rgbToHex(
             r,

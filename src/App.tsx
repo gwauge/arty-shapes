@@ -39,7 +39,7 @@ function App() {
 
                 <div className='mt-2'>
                   <label className='form-label' htmlFor='input-color'>Color selection mode</label>
-                  <select id='input-color' className='form-select' defaultValue={"representative"}>
+                  <select id='input-color' className='form-select' defaultValue={"average"}>
                     <option value="average">Average</option>
                     <option value="root">Root</option>
                     <option value="center">Center</option>
@@ -67,8 +67,8 @@ function App() {
                   <label className='form-label' htmlFor='input-tolerance'>Simplification tolerance: {tolerance}</label>
                   <input
                     id="input-tolerance"
-                    className='form-control'
-                    type="number"
+                    className='form-range'
+                    type="range"
                     min={0} max={100} step={1}
                     defaultValue={tolerance}
                     onChange={e => setTolerance(parseInt(e.target.value))}
@@ -77,8 +77,20 @@ function App() {
                 </div>
               </div>
 
-              <div className='col-4 d-flex align-items-center justify-content-center'>
-                <button className='btn btn-lg btn-primary' id="btn-shapify" onClick={shapify}>Shapify</button>
+              <div className='col-4'>
+                <div className=''>
+                  <label className='form-label' htmlFor='input-segmentation'>Segment mode</label>
+                  <select id='input-segmentation' className='form-select' defaultValue={"convex"}>
+                    <option value="aabb">Axis-aligned bounding box</option>
+                    <option value="convex">Convex hull</option>
+                    <option value="concave">Concave hull</option>
+                    <option value="oabb">Object-aligned bounding box</option>
+                  </select>
+                </div>
+
+                <div className='mt-3'>
+                  <button className='btn btn-lg btn-primary' id="btn-shapify" onClick={shapify}>Shapify</button>
+                </div>
               </div>
             </div>
 
