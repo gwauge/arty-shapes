@@ -1,7 +1,5 @@
 import ImageData from '@canvas/image-data';
 
-import { BoundingBox } from './union-find';
-
 export function hexToRgb(hex: string) {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     if (!result) throw new Error("Invalid hex color: " + hex);
@@ -85,56 +83,6 @@ export function clone_image(img: ImageData) {
         img.width,
         img.height
     );
-}
-
-export function drawRectangle(
-    ctx: CanvasRenderingContext2D,
-    segment: BoundingBox & { color: string },
-    alpha: number = 0.5
-) {
-    // use rgba to control the alpha value 
-    const rgb = hexToRgb(segment.color);
-    ctx.fillStyle = `rgba(${rgb?.r}, ${rgb?.g}, ${rgb?.b}, ${alpha})`; // fill with color
-
-    ctx.fillRect(segment.w, segment.n, segment.e - segment.w, segment.s - segment.n);
-}
-
-
-export function fillLines(ctx: CanvasRenderingContext2D, coords: Array<[number, number]>, color: string, width: number = 1) {
-    // draw lines between points
-    ctx.beginPath();
-    ctx.fillStyle = color;
-    ctx.lineWidth = width;
-    ctx.moveTo(coords[0][0], coords[0][1]);
-    coords
-        .forEach(point => {
-            ctx.lineTo(point[0], point[1]);
-        })
-    ctx.closePath();
-    ctx.fill();
-}
-
-export function strokeLines(ctx: CanvasRenderingContext2D, coords: Array<[number, number]>, color: string, width: number = 1) {
-    // draw lines between points
-    ctx.beginPath();
-    ctx.strokeStyle = color;
-    ctx.lineWidth = width;
-    ctx.moveTo(coords[0][0], coords[0][1]);
-    coords
-        .forEach(point => {
-            ctx.lineTo(point[0], point[1]);
-        })
-    // ctx.lineTo(coords[0][0], coords[0][1]);
-    ctx.closePath();
-    ctx.stroke();
-}
-
-export function fillCircle(ctx: CanvasRenderingContext2D, coords: [number, number], color: string, radius = 2) {
-    ctx.beginPath();
-    ctx.arc(coords[0], coords[1], radius, 0, 2 * Math.PI, false);
-    ctx.lineWidth = 3;
-    ctx.fillStyle = color;
-    ctx.fill();
 }
 
 export function getImageData(img_id: string) {

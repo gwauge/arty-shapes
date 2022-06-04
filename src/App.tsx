@@ -105,7 +105,7 @@ function App() {
 
               {/* canvas */}
               <div className='col-12 col-xl-4 flex-shrink-0'>
-                <canvas id="as-canvas" className='border border-dark border-2 m-auto' />
+                <canvas id="as-canvas" className='border border-dark border-2 m-auto' height={250} />
               </div>
 
             </div>
