@@ -18,7 +18,7 @@ import {
 
 let canvas: fabric.Canvas;
 
-export default function shapify(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+export default function shapify() {
     console.time('shapify');
 
     // create new, clean canvas

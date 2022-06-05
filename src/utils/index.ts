@@ -98,3 +98,10 @@ export function getImageData(img_id: string) {
     ctx.drawImage(img, 0, 0);
     return ctx.getImageData(0, 0, img.naturalWidth, img.naturalHeight);
 }
+
+export function randomizeSelect(id: string) {
+    const select = document.getElementById(id) as HTMLSelectElement;
+    const items = select.getElementsByTagName('option');
+    const index = Math.floor(Math.random() * items.length);
+    select.selectedIndex = index;
+}

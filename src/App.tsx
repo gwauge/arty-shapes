@@ -2,6 +2,7 @@ import React from 'react';
 import './styles/App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import shapify from './utils/shapify';
+import { randomizeSelect } from './utils';
 
 const HEIGHT = 250;
 const TEST_IMG = 2;
@@ -31,7 +32,7 @@ function App() {
               <div className='col-4'>
                 <div>
                   <label className='form-label'>Image</label>
-                  <select defaultValue={img} className='form-select' onChange={e => setImg(parseInt(e.target.value))}>
+                  <select defaultValue={img} className='form-select' id='input-image' onChange={e => setImg(parseInt(e.target.value))}>
                     <option value={1}>Woman in city</option>
                     <option value={2}>Kitchen</option>
                   </select>
@@ -85,11 +86,26 @@ function App() {
                     <option value="aabb">Axis-aligned bounding box</option>
                     <option value="convex">Convex hull</option>
                     <option value="concave">Concave hull</option>
-                    <option value="oabb">Object-aligned bounding box</option>
+                    {/* <option value="oabb">Object-aligned bounding box</option> */}
                   </select>
                 </div>
 
-                <div className='mt-3'>
+                <div className='mt-3 d-flex justify-content-around'>
+                  <button className='btn btn-lg btn-danger' onClick={e => {
+                    e.preventDefault();
+    
+                    randomizeSelect('input-image');
+                    randomizeSelect('input-color');
+                    randomizeSelect('input-segmentation');
+
+                    // randomize simplify.js tolerance value
+                    const MAX_RANDOM_TOLERANCE = 15;
+                    const tolerance = document.getElementById('input-tolerance') as HTMLInputElement;
+                    tolerance.value = Math.floor(Math.random() * MAX_RANDOM_TOLERANCE).toString();
+                    setTolerance(parseInt(tolerance.value)); // update state
+
+                    shapify();
+                  }}>Randomize</button>
                   <button className='btn btn-lg btn-primary' id="btn-shapify" onClick={shapify}>Shapify</button>
                 </div>
               </div>
