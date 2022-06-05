@@ -1,7 +1,7 @@
 import React from 'react';
 import './styles/App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import shapify from './utils/shapify';
+import shapify, { canvas } from './utils/shapify';
 import { randomizeSelect } from './utils';
 
 const HEIGHT = 250;
@@ -90,10 +90,10 @@ function App() {
                   </select>
                 </div>
 
-                <div className='mt-3 d-flex justify-content-around'>
+                <div className='mt-3 d-flex justify-content-between'>
                   <button className='btn btn-lg btn-danger' onClick={e => {
                     e.preventDefault();
-                    
+
                     randomizeSelect('input-color');
                     randomizeSelect('input-segmentation');
 
@@ -104,8 +104,29 @@ function App() {
                     setTolerance(parseInt(tolerance.value)); // update state
 
                     shapify();
+                    console.log("canvas:", canvas);
                   }}>Randomize</button>
                   <button className='btn btn-lg btn-primary' id="btn-shapify" onClick={shapify}>Shapify</button>
+                  <button className='btn btn-lg btn-success' onClick={e => {
+                    e.preventDefault();
+                    function download(filename: string, content: string) {
+                      var element = document.createElement('a');
+                      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
+                      element.setAttribute('download', filename);
+                    
+                      element.style.display = 'none';
+                      document.body.appendChild(element);
+                    
+                      element.click();
+                    
+                      document.body.removeChild(element);
+                    }
+
+                    // Start file download.
+                    if (canvas) download("artyshapes.svg", canvas.toSVG());
+                    else alert("Canvas is not ready yet!");
+                    
+                  }}>Export</button>
                 </div>
               </div>
             </div>

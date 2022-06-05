@@ -16,7 +16,7 @@ import {
     mondrian_colors
 } from './colorMode';
 
-let canvas: fabric.Canvas;
+export let canvas: fabric.Canvas;
 
 export default function shapify() {
     console.time('shapify');
@@ -41,6 +41,7 @@ export default function shapify() {
     draw_segments(image_data);
 
     console.timeEnd('shapify');
+    console.log(canvas);
 }
 
 export function draw_segments(
