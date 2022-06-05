@@ -6,7 +6,7 @@ import shapify from './utils/shapify';
 const HEIGHT = 250;
 const TEST_IMG = 2;
 const DISCARD_THRESHOLD = 0.01;
-const TOLERANCE = 20;
+const TOLERANCE = 15;
 
 function App() {
 
@@ -45,6 +45,7 @@ function App() {
                     <option value="center">Center</option>
                     <option value="segmentation">Segmentation</option>
                     <option value="representative">Representative</option>
+                    <option value="Mondrian">Mondrian</option>
                   </select>
                 </div>
               </div>

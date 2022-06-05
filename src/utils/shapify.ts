@@ -12,7 +12,8 @@ import {
     representative_color,
     root_color,
     center_color,
-    average_color
+    average_color,
+    mondrian_colors
 } from './colorMode';
 
 let canvas: fabric.Canvas;
@@ -74,6 +75,9 @@ export function draw_segments(
         case "representative":
             representative_color(segments, original_img);
             break;
+        case "Mondrian":
+            mondrian_colors(segments);
+            break;
         case "segmentation":
             break;
         default:
@@ -117,9 +121,18 @@ export function draw_segments(
                 const simplified = simplify(points.map(p => ({ x: p[0], y: p[1] })), tolerance);
 
                 // Initialize and render the polygon in canvas
-                canvas.add(new fabric.Polygon(simplified, {
-                    fill: segment.color
-                }));
+                if(color_mode_select.value === "Mondrian") {
+                    console.log("Mondrian");
+                    canvas.add(new  fabric.Polygon(simplified, {
+                        fill: segment.color,
+                        strokeWidth: 5,
+                        stroke: "#000000"
+                    }))
+                } else {
+                    canvas.add(new fabric.Polygon(simplified, {
+                        fill: segment.color 
+                    }))
+                }
             } else canvas.add(new fabric.Polygon(points.map(p => ({ x: p[0], y: p[1] })), { fill: segment.color }));
         })
 }
