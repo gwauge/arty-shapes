@@ -109,12 +109,10 @@ export function representative_color(segments: Node[], original_img: ImageData) 
 
 /** Use a specific colour palette to create images similar to those of the artist Piet Mondrian. */
 export function mondrian_colors(segments: Node[]) {
-    const mondrian_color_palette = ["#fff001", "#ff0101", "#0101fd", "#f9f9f9", "#f9f9f9", "#f9f9f9", "#f9f9f9", "#30303a"]
+    const mondrian_color_palette = ["#fff001", "#ff0101", "#0101fd", "#f9f9f9", "#f9f9f9", "#f9f9f9", "#30303a"]
     segments.forEach((root, i) => {
         if (!root.children) return;
 
         root.color = mondrian_color_palette[Math.floor(Math.random()*mondrian_color_palette.length)]
-
-
     })
 }
