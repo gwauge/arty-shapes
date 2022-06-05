@@ -93,8 +93,7 @@ function App() {
                 <div className='mt-3 d-flex justify-content-around'>
                   <button className='btn btn-lg btn-danger' onClick={e => {
                     e.preventDefault();
-    
-                    randomizeSelect('input-image');
+                    
                     randomizeSelect('input-color');
                     randomizeSelect('input-segmentation');
 
