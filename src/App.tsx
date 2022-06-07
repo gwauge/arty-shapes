@@ -1,11 +1,13 @@
 import React from 'react';
 import './styles/App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import shapify, { canvas } from './utils/shapify';
+import shapify, { canvas as ascanvas } from './utils/shapify';
 import { randomizeSelect } from './utils';
+import { fabric } from 'fabric';
+import PCA from 'pca-js';
 
 const HEIGHT = 250;
-const TEST_IMG = 2;
+const TEST_IMG = 1;
 const DISCARD_THRESHOLD = 0.01;
 const TOLERANCE = 15;
 
@@ -14,6 +16,7 @@ function App() {
   const [img, setImg] = React.useState(TEST_IMG);
   const [discard, setDiscard] = React.useState(DISCARD_THRESHOLD);
   const [tolerance, setTolerance] = React.useState(TOLERANCE);
+  const [canvas, setCanvas] = React.useState<fabric.Canvas | null>(null);
 
   return (
     <div className="App">
@@ -25,10 +28,10 @@ function App() {
       <main>
 
         <div className='container-lg' style={{ minHeight: "100vh" }}>
-          <div className='row align-items-strech justify-content-center h-100'>
+          <div className='row align-items-strech justify-content-center'>
 
             {/* interactive elements */}
-            <div className='col-12 row h-100 justify-content-between my-3'>
+            <div className='col-12 row justify-content-between my-3'>
               <div className='col-4'>
                 <div>
                   <label className='form-label'>Image</label>
@@ -104,7 +107,6 @@ function App() {
                     setTolerance(parseInt(tolerance.value)); // update state
 
                     shapify();
-                    console.log("canvas:", canvas);
                   }}>Randomize</button>
                   <button className='btn btn-lg btn-primary' id="btn-shapify" onClick={shapify}>Shapify</button>
                   <button className='btn btn-lg btn-success' onClick={e => {
@@ -113,19 +115,19 @@ function App() {
                       var element = document.createElement('a');
                       element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
                       element.setAttribute('download', filename);
-                    
+
                       element.style.display = 'none';
                       document.body.appendChild(element);
-                    
+
                       element.click();
-                    
+
                       document.body.removeChild(element);
                     }
 
                     // Start file download.
-                    if (canvas) download("artyshapes.svg", canvas.toSVG());
+                    if (ascanvas) download("artyshapes.svg", ascanvas.toSVG());
                     else alert("Canvas is not ready yet!");
-                    
+
                   }}>Export</button>
                 </div>
               </div>
@@ -148,7 +150,101 @@ function App() {
             </div>
 
           </div>
+          <button className='btn btn-secondary mb-2' onClick={async e => {
+            let c = canvas;
+            if (c) c.dispose();
+            c = new fabric.Canvas('as-canvas-debug')
+            setCanvas(c);
+
+            const points = [
+              [3.7, 1.7],
+              [4.1, 3.8],
+              [4.7, 2.9],
+              [5.2, 2.8],
+              [6.0, 4.0],
+              [6.3, 3.6],
+              [9.7, 6.3],
+              [10.0, 4.9],
+              [11.0, 3.6],
+              [12.5, 6.4]
+            ] as [number, number][];
+
+            let minY = [0, Infinity];
+            let maxY = [0, -1];
+            let minX = [Infinity, 0];
+            let maxX = [-1, 0];
+            const SCALE_FACTOR = 20;
+            const HEIGHT = (c.height || 250);
+            for (const point of points) {
+              c.add(new fabric.Circle({
+                left: point[0] * SCALE_FACTOR,
+                top: HEIGHT - point[1] * SCALE_FACTOR,
+                radius: 2,
+                fill: 'blue',
+              }));
+
+              if (point[1] < minY[1]) minY = point;
+              if (point[1] > maxY[1]) maxY = point;
+              if (point[0] < minX[0]) minX = point;
+              if (point[0] > maxX[0]) maxX = point;
+            }
+
+            const center = [
+              (minX[0] + maxX[0]) / 2,
+              (minY[1] + maxY[1]) / 2
+            ];
+            c.add(new fabric.Circle({
+              left: center[0] * SCALE_FACTOR,
+              top: HEIGHT - center[1] * SCALE_FACTOR,
+              radius: 3,
+              fill: 'red',
+            }));
+
+            const eigenvectors = PCA.getEigenVectors(points);
+            console.log(eigenvectors);
+
+            // vector from center to maxY
+            const c_len = [
+              maxY[0] - center[0],
+              maxX
+            ]
+
+            const w = (center[0] - minX[0]) * SCALE_FACTOR;
+            const h = (center[1] - minY[1]) * SCALE_FACTOR;
+            console.log("hw:", h, w);
+
+            const obb = [
+              {
+                x: center[0] * SCALE_FACTOR - eigenvectors[0].vector[0] * w,
+                y: HEIGHT - center[1] * SCALE_FACTOR - eigenvectors[0].vector[1] * h,
+              },
+              {
+                x: center[0] * SCALE_FACTOR + eigenvectors[1].vector[0] * w,
+                y: HEIGHT - center[1] * SCALE_FACTOR + eigenvectors[1].vector[1] * h,
+              },
+              {
+                x: center[0] * SCALE_FACTOR + eigenvectors[0].vector[0] * w,
+                y: HEIGHT - center[1] * SCALE_FACTOR + eigenvectors[0].vector[1] * h,
+              },
+              {
+                x: center[0] * SCALE_FACTOR - eigenvectors[1].vector[0] * w,
+                y: HEIGHT - center[1] * SCALE_FACTOR - eigenvectors[1].vector[1] * h,
+              }
+            ];
+
+            // stroke OABB
+            c.add(new fabric.Polygon(obb, {
+              fill: '',
+              strokeWidth: 2,
+              stroke: "black"
+            }));
+
+          }}>Test</button>
+          <div className='d-flex justify-content-center mb-3'>
+            <canvas id="as-canvas-debug" className='border border-dark border-2' height={250} />
+          </div>
         </div>
+
       </main>
     </div>
   );

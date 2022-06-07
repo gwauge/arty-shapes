@@ -1,6 +1,7 @@
 import monotoneChainConvexHull from 'monotone-chain-convex-hull';
 import simplify from 'simplify-js';
 import concaveman from 'concaveman';
+import PCA from 'pca-js';
 import { fabric } from 'fabric';
 
 import hk from './ccl';
@@ -24,10 +25,10 @@ export default function shapify() {
     // create new, clean canvas
     if (canvas) canvas.dispose();
     canvas = new fabric.Canvas('as-canvas')
-    
+
     const segmentation_image_element = document.getElementById('img-segmentation') as HTMLImageElement;
     const segmentation_img = getImageData("img-segmentation");
-    
+
     // ensure canvas has the same size as the rendered image
     canvas.setHeight(segmentation_image_element.height);
     canvas.setWidth(segmentation_image_element.width);
@@ -41,7 +42,6 @@ export default function shapify() {
     draw_segments(image_data);
 
     console.timeEnd('shapify');
-    console.log(canvas);
 }
 
 export function draw_segments(
@@ -90,7 +90,7 @@ export function draw_segments(
     console.log("segments:", segments.length);
     segments
         .sort((a, b) => (b.s - b.n) * (b.e - b.w) - (a.s - a.n) * (a.e - a.w)) // sort by size of the bounding box
-        .forEach(segment => {
+        .forEach((segment, index) => {
             // discard small segments (area smaller than a predefined value relative to the size of the image)
             if ((segment.s - segment.n) * (segment.e - segment.w) < (img.height * img.width) * discard_threshold) return;
 
@@ -122,17 +122,74 @@ export function draw_segments(
             const simplified = simplify(points.map(p => ({ x: p[0], y: p[1] })), tolerance);
 
             // Initialize and render the polygon in canvas
-            if(color_mode_select.value === "Mondrian") {
-                console.log("Mondrian");
-                canvas.add(new  fabric.Polygon(simplified, {
+            if (color_mode_select.value === "Mondrian") {
+                // console.log("Mondrian");
+                canvas.add(new fabric.Polygon(simplified, {
                     fill: segment.color,
                     strokeWidth: 5,
                     stroke: "#000000"
                 }))
             } else {
                 canvas.add(new fabric.Polygon(simplified, {
-                    fill: segment.color 
+                    fill: index === 3 ? "red" : segment.color
                 }))
+            }
+
+            if (index === 3) {
+                console.log("segment:", segment);
+                const eigenvectors = PCA.getEigenVectors(points);
+                console.log("eigenvectors", eigenvectors);
+
+                const center = [
+                    segment.w + (segment.e - segment.w) / 2,
+                    segment.n + (segment.s - segment.n) / 2
+                ] as [number, number];
+
+                // const w = (segment.e - segment.w) / 2;
+                // const h = (segment.s - segment.n) / 2;
+                const w = 10;
+                const h = 10;
+
+                canvas.add(new fabric.Line([
+                    center[0], center[1],
+                    center[0] + w * eigenvectors[0].vector[0], center[1] + h * eigenvectors[0].vector[1]
+                ], {
+                    strokeWidth: 2,
+                    stroke: 'black'
+                }))
+                canvas.add(new fabric.Line([
+                    center[0], center[1],
+                    center[0] + w * eigenvectors[1].vector[0], center[1] + h * eigenvectors[1].vector[1]
+                ], {
+                    strokeWidth: 2,
+                    stroke: 'black'
+                }))
+
+                const obb = [
+                    {
+                        x: Math.floor(center[0] - eigenvectors[0].vector[0] * w),
+                        y: center[1] - eigenvectors[0].vector[1] * h,
+                    },
+                    {
+                        x: center[0] + eigenvectors[1].vector[0] * w,
+                        y: center[1] + eigenvectors[1].vector[1] * h,
+                    },
+                    {
+                        x: center[0] + eigenvectors[0].vector[0] * w,
+                        y: center[1] + eigenvectors[0].vector[1] * h,
+                    },
+                    {
+                        x: center[0] - eigenvectors[1].vector[0] * w,
+                        y: center[1] - eigenvectors[1].vector[1] * h,
+                    }
+                ]
+
+                // stroke OABB
+                canvas.add(new fabric.Polygon(obb, {
+                    fill:'',
+                    strokeWidth: 2,
+                    stroke: "black"
+                }));
             }
         })
 }

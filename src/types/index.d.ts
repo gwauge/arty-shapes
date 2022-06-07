@@ -5,3 +5,9 @@ declare module 'monotone-chain-convex-hull' {
 declare module 'simplify-js' {
     export default function simplify(points: Array<{ x: number, y: number }>, tolerance: number = 1, highQuality: boolean = false): Array<{ x: number, y: number }>
 };
+
+declare module 'pca-js' {
+    type Vector = [number, number];
+    export function getEigenVectors(points: Array<Vector>): Array<{ eigenvalue: number, vector: Vector }>;
+
+};
