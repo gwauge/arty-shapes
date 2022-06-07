@@ -8,6 +8,9 @@ import hk from './ccl';
 import {
     nearest_neighbor,
     getImageData,
+    angleBetween,
+    rotate,
+    AABBfromNSEW,
 } from './';
 import {
     representative_color,
@@ -38,7 +41,6 @@ export default function shapify() {
     const image_data = nearest_neighbor(segmentation_img, segmentation_image_element.width, segmentation_image_element.height);
     console.log("height", image_data.height, "width", image_data.width);
 
-    // render_image_v1(ctx, image_data);
     draw_segments(image_data);
 
     console.timeEnd('shapify');
@@ -47,10 +49,7 @@ export default function shapify() {
 export function draw_segments(
     img: ImageData
 ) {
-
-    console.time("ccl");
     const segments = hk(img);
-    console.timeEnd("ccl");
 
     // calculate appropriate color
     const original_img = nearest_neighbor(getImageData("img-input"), img.width, img.height);
@@ -98,21 +97,52 @@ export function draw_segments(
 
             if (!segment.children) return;
 
-            let points: [number, number][] = [];
+            let points: Vector[] = [];
             switch (segmentation_mode_select.value) {
                 case "aabb":
-                    points = [
-                        [segment.w, segment.n],
-                        [segment.e, segment.n],
-                        [segment.e, segment.s],
-                        [segment.w, segment.s],
-                    ];
+                    points = AABBfromNSEW(segment.n, segment.s, segment.e, segment.w);
                     break;
                 case "convex":
                     points = monotoneChainConvexHull(segment.children.map(c => [c.x, c.y]));
                     break;
                 case "concave":
-                    points = concaveman(segment.children.map(c => [c.x, c.y])) as [number, number][];
+                    points = concaveman(segment.children.map(c => [c.x, c.y])) as Vector[];
+                    break;
+                case "oabb":
+                    /* Credits to https://hewjunwei.wordpress.com/2013/01/26/obb-generation-via-principal-component-analysis/ */
+
+                    points = monotoneChainConvexHull(segment.children.map(c => [c.x, c.y]));
+                    const eigenvectors = PCA.getEigenVectors(points);
+                    const angle = angleBetween(eigenvectors[0].vector, [1, 0]);
+
+                    // calculate bounding box to determinate the center
+                    let nsew: [number, number, number, number] = [-1, Infinity, -1, Infinity];
+                    for (const point of points) {
+
+                        nsew[0] = Math.max(nsew[0], point[1]);
+                        nsew[1] = Math.min(nsew[1], point[1]);
+                        nsew[2] = Math.max(nsew[2], point[0]);
+                        nsew[3] = Math.min(nsew[3], point[0]);
+                    }
+
+                    const center: Vector = [
+                        (nsew[2] + nsew[3]) / 2,
+                        (nsew[1] + nsew[0]) / 2
+                    ];
+
+                    // rotate points around the center and find the bounding box
+                    nsew = [-1, Infinity, -1, Infinity];
+                    for (const point of points) {
+                        const rotatedPoint = rotate(point, angle, center);
+
+                        nsew[0] = Math.max(nsew[0], rotatedPoint[1]);
+                        nsew[1] = Math.min(nsew[1], rotatedPoint[1]);
+                        nsew[2] = Math.max(nsew[2], rotatedPoint[0]);
+                        nsew[3] = Math.min(nsew[3], rotatedPoint[0]);
+                    }
+
+                    // rotate the bounding box points back
+                    points = AABBfromNSEW(...nsew).map(p => rotate(p, -angle, center));
                     break;
                 default:
                     throw new Error("invalid segmentation mode: " + segmentation_mode_select.value);
@@ -131,65 +161,8 @@ export function draw_segments(
                 }))
             } else {
                 canvas.add(new fabric.Polygon(simplified, {
-                    fill: index === 3 ? "red" : segment.color
+                    fill: segment.color
                 }))
-            }
-
-            if (index === 3) {
-                console.log("segment:", segment);
-                const eigenvectors = PCA.getEigenVectors(points);
-                console.log("eigenvectors", eigenvectors);
-
-                const center = [
-                    segment.w + (segment.e - segment.w) / 2,
-                    segment.n + (segment.s - segment.n) / 2
-                ] as [number, number];
-
-                // const w = (segment.e - segment.w) / 2;
-                // const h = (segment.s - segment.n) / 2;
-                const w = 10;
-                const h = 10;
-
-                canvas.add(new fabric.Line([
-                    center[0], center[1],
-                    center[0] + w * eigenvectors[0].vector[0], center[1] + h * eigenvectors[0].vector[1]
-                ], {
-                    strokeWidth: 2,
-                    stroke: 'black'
-                }))
-                canvas.add(new fabric.Line([
-                    center[0], center[1],
-                    center[0] + w * eigenvectors[1].vector[0], center[1] + h * eigenvectors[1].vector[1]
-                ], {
-                    strokeWidth: 2,
-                    stroke: 'black'
-                }))
-
-                const obb = [
-                    {
-                        x: Math.floor(center[0] - eigenvectors[0].vector[0] * w),
-                        y: center[1] - eigenvectors[0].vector[1] * h,
-                    },
-                    {
-                        x: center[0] + eigenvectors[1].vector[0] * w,
-                        y: center[1] + eigenvectors[1].vector[1] * h,
-                    },
-                    {
-                        x: center[0] + eigenvectors[0].vector[0] * w,
-                        y: center[1] + eigenvectors[0].vector[1] * h,
-                    },
-                    {
-                        x: center[0] - eigenvectors[1].vector[0] * w,
-                        y: center[1] - eigenvectors[1].vector[1] * h,
-                    }
-                ]
-
-                // stroke OABB
-                canvas.add(new fabric.Polygon(obb, {
-                    fill:'',
-                    strokeWidth: 2,
-                    stroke: "black"
-                }));
             }
         })
 }

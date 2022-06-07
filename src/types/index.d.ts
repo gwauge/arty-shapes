@@ -1,5 +1,7 @@
+type Vector = [number, number];
+
 declare module 'monotone-chain-convex-hull' {
-    export default function monotoneChainConvexHull(points: Array<[number, number]>): Array<[number, number]>
+    export default function monotoneChainConvexHull(points: Array<Vector>): Array<Vector>
 };
 
 declare module 'simplify-js' {
@@ -7,7 +9,5 @@ declare module 'simplify-js' {
 };
 
 declare module 'pca-js' {
-    type Vector = [number, number];
-    export function getEigenVectors(points: Array<Vector>): Array<{ eigenvalue: number, vector: Vector }>;
-
+    export function getEigenVectors(initialData: Array<Vector>): Array<{ eigenvalue: number, vector: Vector }>;
 };

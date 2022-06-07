@@ -3,8 +3,6 @@ import './styles/App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import shapify, { canvas as ascanvas } from './utils/shapify';
 import { randomizeSelect } from './utils';
-import { fabric } from 'fabric';
-import PCA from 'pca-js';
 
 const HEIGHT = 250;
 const TEST_IMG = 1;
@@ -16,7 +14,6 @@ function App() {
   const [img, setImg] = React.useState(TEST_IMG);
   const [discard, setDiscard] = React.useState(DISCARD_THRESHOLD);
   const [tolerance, setTolerance] = React.useState(TOLERANCE);
-  const [canvas, setCanvas] = React.useState<fabric.Canvas | null>(null);
 
   return (
     <div className="App">
@@ -43,7 +40,7 @@ function App() {
 
                 <div className='mt-2'>
                   <label className='form-label' htmlFor='input-color'>Color selection mode</label>
-                  <select id='input-color' className='form-select' defaultValue={"average"}>
+                  <select id='input-color' className='form-select' defaultValue={"mondrian"}>
                     <option value="average">Average</option>
                     <option value="root">Root</option>
                     <option value="center">Center</option>
@@ -89,7 +86,7 @@ function App() {
                     <option value="aabb">Axis-aligned bounding box</option>
                     <option value="convex">Convex hull</option>
                     <option value="concave">Concave hull</option>
-                    {/* <option value="oabb">Object-aligned bounding box</option> */}
+                    <option value="oabb">Object-aligned bounding box</option>
                   </select>
                 </div>
 
@@ -150,103 +147,10 @@ function App() {
             </div>
 
           </div>
-          <button className='btn btn-secondary mb-2' onClick={async e => {
-            let c = canvas;
-            if (c) c.dispose();
-            c = new fabric.Canvas('as-canvas-debug')
-            setCanvas(c);
-
-            const points = [
-              [3.7, 1.7],
-              [4.1, 3.8],
-              [4.7, 2.9],
-              [5.2, 2.8],
-              [6.0, 4.0],
-              [6.3, 3.6],
-              [9.7, 6.3],
-              [10.0, 4.9],
-              [11.0, 3.6],
-              [12.5, 6.4]
-            ] as [number, number][];
-
-            let minY = [0, Infinity];
-            let maxY = [0, -1];
-            let minX = [Infinity, 0];
-            let maxX = [-1, 0];
-            const SCALE_FACTOR = 20;
-            const HEIGHT = (c.height || 250);
-            for (const point of points) {
-              c.add(new fabric.Circle({
-                left: point[0] * SCALE_FACTOR,
-                top: HEIGHT - point[1] * SCALE_FACTOR,
-                radius: 2,
-                fill: 'blue',
-              }));
-
-              if (point[1] < minY[1]) minY = point;
-              if (point[1] > maxY[1]) maxY = point;
-              if (point[0] < minX[0]) minX = point;
-              if (point[0] > maxX[0]) maxX = point;
-            }
-
-            const center = [
-              (minX[0] + maxX[0]) / 2,
-              (minY[1] + maxY[1]) / 2
-            ];
-            c.add(new fabric.Circle({
-              left: center[0] * SCALE_FACTOR,
-              top: HEIGHT - center[1] * SCALE_FACTOR,
-              radius: 3,
-              fill: 'red',
-            }));
-
-            const eigenvectors = PCA.getEigenVectors(points);
-            console.log(eigenvectors);
-
-            // vector from center to maxY
-            const c_len = [
-              maxY[0] - center[0],
-              maxX
-            ]
-
-            const w = (center[0] - minX[0]) * SCALE_FACTOR;
-            const h = (center[1] - minY[1]) * SCALE_FACTOR;
-            console.log("hw:", h, w);
-
-            const obb = [
-              {
-                x: center[0] * SCALE_FACTOR - eigenvectors[0].vector[0] * w,
-                y: HEIGHT - center[1] * SCALE_FACTOR - eigenvectors[0].vector[1] * h,
-              },
-              {
-                x: center[0] * SCALE_FACTOR + eigenvectors[1].vector[0] * w,
-                y: HEIGHT - center[1] * SCALE_FACTOR + eigenvectors[1].vector[1] * h,
-              },
-              {
-                x: center[0] * SCALE_FACTOR + eigenvectors[0].vector[0] * w,
-                y: HEIGHT - center[1] * SCALE_FACTOR + eigenvectors[0].vector[1] * h,
-              },
-              {
-                x: center[0] * SCALE_FACTOR - eigenvectors[1].vector[0] * w,
-                y: HEIGHT - center[1] * SCALE_FACTOR - eigenvectors[1].vector[1] * h,
-              }
-            ];
-
-            // stroke OABB
-            c.add(new fabric.Polygon(obb, {
-              fill: '',
-              strokeWidth: 2,
-              stroke: "black"
-            }));
-
-          }}>Test</button>
-          <div className='d-flex justify-content-center mb-3'>
-            <canvas id="as-canvas-debug" className='border border-dark border-2' height={250} />
-          </div>
         </div>
 
-      </main>
-    </div>
+      </main >
+    </div >
   );
 }
 
