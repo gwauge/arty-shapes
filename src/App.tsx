@@ -1,11 +1,11 @@
 import React from 'react';
 import './styles/App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import shapify, { canvas } from './utils/shapify';
+import shapify, { canvas as ascanvas } from './utils/shapify';
 import { randomizeSelect } from './utils';
 
 const HEIGHT = 250;
-const TEST_IMG = 2;
+const TEST_IMG = 1;
 const DISCARD_THRESHOLD = 0.01;
 const TOLERANCE = 15;
 
@@ -25,10 +25,10 @@ function App() {
       <main>
 
         <div className='container-lg' style={{ minHeight: "100vh" }}>
-          <div className='row align-items-strech justify-content-center h-100'>
+          <div className='row align-items-strech justify-content-center'>
 
             {/* interactive elements */}
-            <div className='col-12 row h-100 justify-content-between my-3'>
+            <div className='col-12 row justify-content-between my-3'>
               <div className='col-4'>
                 <div>
                   <label className='form-label'>Image</label>
@@ -40,7 +40,7 @@ function App() {
 
                 <div className='mt-2'>
                   <label className='form-label' htmlFor='input-color'>Color selection mode</label>
-                  <select id='input-color' className='form-select' defaultValue={"average"}>
+                  <select id='input-color' className='form-select' defaultValue={"mondrian"}>
                     <option value="average">Average</option>
                     <option value="root">Root</option>
                     <option value="center">Center</option>
@@ -86,7 +86,7 @@ function App() {
                     <option value="aabb">Axis-aligned bounding box</option>
                     <option value="convex">Convex hull</option>
                     <option value="concave">Concave hull</option>
-                    {/* <option value="oabb">Object-aligned bounding box</option> */}
+                    <option value="oabb">Object-aligned bounding box</option>
                   </select>
                 </div>
 
@@ -104,7 +104,6 @@ function App() {
                     setTolerance(parseInt(tolerance.value)); // update state
 
                     shapify();
-                    console.log("canvas:", canvas);
                   }}>Randomize</button>
                   <button className='btn btn-lg btn-primary' id="btn-shapify" onClick={shapify}>Shapify</button>
                   <button className='btn btn-lg btn-success' onClick={e => {
@@ -113,19 +112,19 @@ function App() {
                       var element = document.createElement('a');
                       element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
                       element.setAttribute('download', filename);
-                    
+
                       element.style.display = 'none';
                       document.body.appendChild(element);
-                    
+
                       element.click();
-                    
+
                       document.body.removeChild(element);
                     }
 
                     // Start file download.
-                    if (canvas) download("artyshapes.svg", canvas.toSVG());
+                    if (ascanvas) download("artyshapes.svg", ascanvas.toSVG());
                     else alert("Canvas is not ready yet!");
-                    
+
                   }}>Export</button>
                 </div>
               </div>
@@ -149,8 +148,9 @@ function App() {
 
           </div>
         </div>
-      </main>
-    </div>
+
+      </main >
+    </div >
   );
 }
 

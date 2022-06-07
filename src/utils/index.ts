@@ -105,3 +105,49 @@ export function randomizeSelect(id: string) {
     const index = Math.floor(Math.random() * items.length);
     select.selectedIndex = index;
 }
+
+type ArrayLengthMutationKeys = 'splice' | 'push' | 'pop' | 'shift' | 'unshift' | number;
+export type ArrayItems<T extends Array<any>> = T extends Array<infer TItems> ? TItems : never;
+export type FixedLengthArray<T, L extends number, TObj = [T, ...Array<T>]> =
+    Pick<TObj, Exclude<keyof TObj, ArrayLengthMutationKeys>>
+    & {
+        readonly length: L
+        [I: number]: T
+        [Symbol.iterator]: () => IterableIterator<T>
+    }
+
+export function radToDeg(radians: number) {
+    return radians * (180 / Math.PI);
+}
+
+/** Calulcates the angle between two given Vectors in degrees. */
+export function angleBetween(a: Vector, b: Vector) {
+    return radToDeg(Math.acos(
+        (a[0] * b[0] + a[1] * b[1]) / (
+            Math.sqrt(a[0] ** 2 + a[1] ** 2) *
+            Math.sqrt(b[0] ** 2 + b[1] ** 2)
+        )
+    ));
+}
+
+export function magnitude(a: Vector) {
+    return Math.sqrt(a[0] ** 2 + a[1] ** 2);
+}
+
+export function rotate([x, y]: Vector, angle: number, [cx, cy]: Vector = [0, 0]): Vector {
+    const radians = (Math.PI / 180) * angle,
+        cos = Math.cos(radians),
+        sin = Math.sin(radians),
+        nx = (cos * (x - cx)) + (sin * (y - cy)) + cx,
+        ny = (cos * (y - cy)) - (sin * (x - cx)) + cy;
+    return [nx, ny];
+}
+
+export function AABBfromNSEW(n: number, s: number, e: number, w: number): Vector[] {
+    return [
+        [w, n],
+        [e, n],
+        [e, s],
+        [w, s],
+    ];
+}
