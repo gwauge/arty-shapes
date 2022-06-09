@@ -11,3 +11,11 @@ declare module 'simplify-js' {
 declare module 'pca-js' {
     export function getEigenVectors(initialData: Array<Vector>): Array<{ eigenvalue: number, vector: Vector }>;
 };
+
+declare module 'oklab' {
+    type sRGB = {r: number, g: number, b: number};
+    type Lab = {L: number, a: number, b: number};
+    
+    export function linearSrgbToOklab(linearSrgb: sRGB): Lab;
+    export function oklabToLinearSrgb(oklab: Lab): sRGB;
+}

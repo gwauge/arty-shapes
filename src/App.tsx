@@ -42,6 +42,7 @@ function App() {
                   <label className='form-label' htmlFor='input-color'>Color selection mode</label>
                   <select id='input-color' className='form-select' defaultValue={"mondrian"}>
                     <option value="average">Average</option>
+                    <option value="average-oklab">Average Oklab</option>
                     <option value="root">Root</option>
                     <option value="center">Center</option>
                     <option value="segmentation">Segmentation</option>

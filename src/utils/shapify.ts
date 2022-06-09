@@ -17,7 +17,8 @@ import {
     root_color,
     center_color,
     average_color,
-    mondrian_colors
+    mondrian_colors,
+    average_color_oklab
 } from './colorMode';
 
 export let canvas: fabric.Canvas;
@@ -65,6 +66,9 @@ export function draw_segments(
     switch (color_mode_select.value) {
         case "average":
             average_color(segments, original_img);
+            break;
+        case "average-oklab":
+            average_color_oklab(segments, original_img);
             break;
         case "root":
             root_color(segments, original_img);

@@ -1,5 +1,39 @@
 import { Node } from "./union-find";
 import { xy_to_i, rgbToHex } from ".";
+import {linearSrgbToOklab, oklabToLinearSrgb} from 'oklab';
+
+/** Use the average color of all pixels for each segment. */
+export function average_color_oklab(segments: Node[], original_img: ImageData) {
+    segments.forEach((root, i) => {
+        if (!root.children) return;
+
+        let L = 0;
+        let a = 0;
+        let b = 0;
+
+        root.children.forEach(child => {
+            const { x, y } = child;
+            const index = xy_to_i([x, y], original_img.width);
+            const lab = linearSrgbToOklab({
+                r: original_img.data[index + 0] / 255,
+                g: original_img.data[index + 1] / 255,
+                b: original_img.data[index + 2] / 255,
+            })
+
+            L += lab.L;
+            a += lab.a;
+            b += lab.b;
+        });
+
+        const sRGB = oklabToLinearSrgb({
+            L: L / root.children.length, 
+            a: a / root.children.length, 
+            b: b / root.children.length
+        })
+        if (i === 0) console.log(sRGB);
+        root.color = rgbToHex(Math.floor(sRGB.r * 255), Math.floor(sRGB.g * 255), Math.floor(sRGB.b * 255));
+    })
+}
 
 /** Use the average color of all pixels for each segment. */
 export function average_color(segments: Node[], original_img: ImageData) {
