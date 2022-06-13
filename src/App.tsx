@@ -35,6 +35,9 @@ function App() {
                   <select defaultValue={img} className='form-select' id='input-image' onChange={e => setImg(parseInt(e.target.value))}>
                     <option value={1}>Woman in city</option>
                     <option value={2}>Kitchen</option>
+                    <option value={3}>Train</option>
+                    <option value={4}>Landscape</option>
+                    <option value={5}>Portrait</option>
                   </select>
                 </div>
 
@@ -134,10 +137,10 @@ function App() {
             <div className='row g-2'>
               {/* images */}
               <div className='col-12 col-xl-4 flex-shrink-0'>
-                <img src={`input${img}.jpg`} alt="Source" height={HEIGHT} className='border border-dark border-2' id='img-input' />
+                <img src={`input/${img}.jpg`} alt="Source" height={HEIGHT} className='border border-dark border-2' id='img-input' />
               </div>
               <div className='col-12 col-xl-4 flex-shrink-0'>
-                <img src={`segmentation${img}.png`} alt="Segmentation" height={HEIGHT} className='border border-dark border-2' id='img-segmentation' />
+                <img src={`segmentation/${img}.png`} alt="Segmentation" height={HEIGHT} className='border border-dark border-2' id='img-segmentation' />
               </div>
 
               {/* canvas */}
