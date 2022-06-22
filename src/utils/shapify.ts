@@ -21,17 +21,67 @@ import {
     average_color_oklab
 } from './colorMode';
 
+import '@tensorflow/tfjs';
+import { load } from '@tensorflow-models/deeplab';
+
+const loadModel = async () => {
+    const modelName = 'ade20k';   // set to your preferred model, either `pascal`, `cityscapes` or `ade20k`
+    const quantizationBytes = 2;  // either 1, 2 or 4
+    return await load({ base: modelName, quantizationBytes });
+};
+
+function segment() {
+    const input_image_element = document.getElementById('img-input') as HTMLImageElement;
+    const c = document.getElementById('seg-canvas') as HTMLCanvasElement;
+    const ctx = c.getContext('2d');
+
+    return loadModel()
+        .then(model => model.segment(input_image_element))
+        .then(
+            ({ legend, segmentationMap, width, height }) => {
+                console.log(`The predicted classes are ${JSON.stringify(legend)}`);
+
+                const scale_factor = c.height / height;
+                console.log("scale:", scale_factor);
+
+                const image = new ImageData(segmentationMap, width);
+                console.log("image size:", image.width, image.height);
+
+                // create new, in-memory canvas
+                const newCanvas = document.createElement('canvas');
+                newCanvas.width = width;
+                newCanvas.height = height;
+                const newCtx = newCanvas.getContext('2d');
+                newCtx?.putImageData(image, 0, 0);
+
+                // c.height = image.height * scale_factor;
+                c.width = image.width * scale_factor;
+                ctx?.scale(scale_factor, scale_factor);
+                console.log("canvas size:", c.width, c.height);
+                ctx?.clearRect(0, 0, c.width, c.height);
+                ctx?.drawImage(newCanvas, 0, 0);
+
+                newCanvas.remove();
+            });
+}
+
 export let canvas: fabric.Canvas;
 
-export default function shapify() {
+export default async function shapify() {
     console.time('shapify');
+
+    console.time('semantic segmentation');
+    await segment();
+    console.timeEnd('semantic segmentation');
 
     // create new, clean canvas
     if (canvas) canvas.dispose();
     canvas = new fabric.Canvas('as-canvas')
 
-    const segmentation_image_element = document.getElementById('img-segmentation') as HTMLImageElement;
-    const segmentation_img = getImageData("img-segmentation");
+    const segmentation_image_element = document.getElementById('seg-canvas') as HTMLCanvasElement;
+    const seg_ctx = segmentation_image_element.getContext('2d');
+    if (!seg_ctx) return;
+    const segmentation_img = seg_ctx.getImageData(0, 0, segmentation_image_element.width, segmentation_image_element.height);
 
     // ensure canvas has the same size as the rendered image
     canvas.setHeight(segmentation_image_element.height);

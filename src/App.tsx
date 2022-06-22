@@ -4,7 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import shapify, { canvas as ascanvas } from './utils/shapify';
 import { randomizeSelect } from './utils';
 
-const HEIGHT = 250;
+const HEIGHT = 254;
 const TEST_IMG = 1;
 const DISCARD_THRESHOLD = 0.01;
 const TOLERANCE = 15;
@@ -140,7 +140,8 @@ function App() {
                 <img src={`input/${img}.jpg`} alt="Source" height={HEIGHT} className='border border-dark border-2' id='img-input' />
               </div>
               <div className='col-12 col-xl-4 flex-shrink-0'>
-                <img src={`segmentation/${img}.png`} alt="Segmentation" height={HEIGHT} className='border border-dark border-2' id='img-segmentation' />
+                <canvas id="seg-canvas" className='border border-dark border-2 m-auto' height={250} />
+                {/* <img src={`segmentation/${img}.png`} alt="Segmentation" height={HEIGHT} className='border border-dark border-2' id='img-segmentation' /> */}
               </div>
 
               {/* canvas */}
