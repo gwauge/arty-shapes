@@ -27,7 +27,7 @@ import { load } from '@tensorflow-models/deeplab';
 type ModelNames = 'pascal' | 'cityscapes' | 'ade20k';
 type QuantizationBytes = 1 | 2 | 4;
 
-const loadModel = async () => {
+async function loadModel() {
     const modelName = (document.getElementById('input-modelName') as HTMLSelectElement).value;
     const quantizationBytes = parseInt((document.getElementById('input-quantizationBytes') as HTMLSelectElement).value);
     return await load({
@@ -35,7 +35,6 @@ const loadModel = async () => {
         quantizationBytes: quantizationBytes as QuantizationBytes
     });
 };
-
 
 function segment() {
     const input_image_element = document.getElementById('img-input') as HTMLImageElement;

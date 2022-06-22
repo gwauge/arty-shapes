@@ -44,6 +44,16 @@ function App() {
                     <option value={4}>Landscape</option>
                     <option value={5}>Portrait</option>
                   </select>
+
+                  <input className='form-control mt-1' type="file" accept='image/*' onChange={e => {
+                    const target_element = document.getElementById("img-input") as HTMLImageElement;
+
+                    const files = e.target.files;
+                    if (files && files?.length > 0) target_element.src = URL.createObjectURL(files[0]);
+                    else console.log("No file selected");
+
+                    setImageChanged(true);
+                  }} />
                 </div>
 
                 {/* model settings */}
