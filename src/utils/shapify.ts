@@ -24,11 +24,18 @@ import {
 import '@tensorflow/tfjs';
 import { load } from '@tensorflow-models/deeplab';
 
+type ModelNames = 'pascal' | 'cityscapes' | 'ade20k';
+type QuantizationBytes = 1 | 2 | 4;
+
 const loadModel = async () => {
-    const modelName = 'ade20k';   // set to your preferred model, either `pascal`, `cityscapes` or `ade20k`
-    const quantizationBytes = 2;  // either 1, 2 or 4
-    return await load({ base: modelName, quantizationBytes });
+    const modelName = (document.getElementById('input-modelName') as HTMLSelectElement).value;
+    const quantizationBytes = parseInt((document.getElementById('input-quantizationBytes') as HTMLSelectElement).value);
+    return await load({
+        base: modelName as ModelNames,
+        quantizationBytes: quantizationBytes as QuantizationBytes
+    });
 };
+
 
 function segment() {
     const input_image_element = document.getElementById('img-input') as HTMLImageElement;
@@ -38,14 +45,10 @@ function segment() {
     return loadModel()
         .then(model => model.segment(input_image_element))
         .then(
-            ({ legend, segmentationMap, width, height }) => {
-                console.log(`The predicted classes are ${JSON.stringify(legend)}`);
-
+            ({ segmentationMap, width, height }) => {
                 const scale_factor = c.height / height;
-                console.log("scale:", scale_factor);
 
                 const image = new ImageData(segmentationMap, width);
-                console.log("image size:", image.width, image.height);
 
                 // create new, in-memory canvas
                 const newCanvas = document.createElement('canvas');
@@ -57,7 +60,6 @@ function segment() {
                 // c.height = image.height * scale_factor;
                 c.width = image.width * scale_factor;
                 ctx?.scale(scale_factor, scale_factor);
-                console.log("canvas size:", c.width, c.height);
                 ctx?.clearRect(0, 0, c.width, c.height);
                 ctx?.drawImage(newCanvas, 0, 0);
 
@@ -67,12 +69,15 @@ function segment() {
 
 export let canvas: fabric.Canvas;
 
-export default async function shapify() {
+export default async function shapify(imageChanged: boolean = true) {
     console.time('shapify');
 
-    console.time('semantic segmentation');
-    await segment();
-    console.timeEnd('semantic segmentation');
+    // only regenerate segmentation if input image or model settings have changed
+    if (imageChanged) {
+        console.time('semantic segmentation');
+        await segment();
+        console.timeEnd('semantic segmentation');
+    }
 
     // create new, clean canvas
     if (canvas) canvas.dispose();
@@ -88,11 +93,9 @@ export default async function shapify() {
     canvas.setWidth(segmentation_image_element.width);
     canvas.calcOffset();
 
-    // downscale image using nearest neighbor sampling
-    const image_data = nearest_neighbor(segmentation_img, segmentation_image_element.width, segmentation_image_element.height);
-    console.log("height", image_data.height, "width", image_data.width);
+    console.log("height", segmentation_img.height, "width", segmentation_img.width);
 
-    draw_segments(image_data);
+    draw_segments(segmentation_img);
 
     console.timeEnd('shapify');
 }
@@ -129,7 +132,7 @@ export function draw_segments(
         case "representative":
             representative_color(segments, original_img);
             break;
-        case "Mondrian":
+        case "mondrian":
             mondrian_colors(segments);
             break;
         case "segmentation":
@@ -151,6 +154,7 @@ export function draw_segments(
 
             if (!segment.children) return;
 
+            // select segment points based on the segmentation mode
             let points: Vector[] = [];
             switch (segmentation_mode_select.value) {
                 case "aabb":
@@ -202,12 +206,11 @@ export function draw_segments(
                     throw new Error("invalid segmentation mode: " + segmentation_mode_select.value);
             }
 
-
+            // simplify the segment
             const simplified = simplify(points.map(p => ({ x: p[0], y: p[1] })), tolerance);
 
             // Initialize and render the polygon in canvas
-            if (color_mode_select.value === "Mondrian") {
-                // console.log("Mondrian");
+            if (color_mode_select.value === "mondrian") {
                 canvas.add(new fabric.Polygon(simplified, {
                     fill: segment.color,
                     strokeWidth: 5,

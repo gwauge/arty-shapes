@@ -7,10 +7,11 @@ import { randomizeSelect } from './utils';
 const HEIGHT = 254;
 const TEST_IMG = 1;
 const DISCARD_THRESHOLD = 0.01;
-const TOLERANCE = 15;
+const TOLERANCE = 1;
 
 function App() {
 
+  const [imageChanged, setImageChanged] = React.useState(true);
   const [img, setImg] = React.useState(TEST_IMG);
   const [discard, setDiscard] = React.useState(DISCARD_THRESHOLD);
   const [tolerance, setTolerance] = React.useState(TOLERANCE);
@@ -29,10 +30,14 @@ function App() {
 
             {/* interactive elements */}
             <div className='col-12 row justify-content-between my-3'>
-              <div className='col-4'>
+              <div className='col-md-4'>
+                {/* image selection */}
                 <div>
                   <label className='form-label'>Image</label>
-                  <select defaultValue={img} className='form-select' id='input-image' onChange={e => setImg(parseInt(e.target.value))}>
+                  <select defaultValue={img} className='form-select' id='input-image' onChange={e => {
+                    setImg(parseInt(e.target.value));
+                    setImageChanged(true);
+                  }}>
                     <option value={1}>Woman in city</option>
                     <option value={2}>Kitchen</option>
                     <option value={3}>Train</option>
@@ -41,21 +46,38 @@ function App() {
                   </select>
                 </div>
 
+                {/* model settings */}
                 <div className='mt-2'>
-                  <label className='form-label' htmlFor='input-color'>Color selection mode</label>
-                  <select id='input-color' className='form-select' defaultValue={"mondrian"}>
-                    <option value="average">Average</option>
-                    <option value="average-oklab">Average Oklab</option>
-                    <option value="root">Root</option>
-                    <option value="center">Center</option>
-                    <option value="segmentation">Segmentation</option>
-                    <option value="representative">Representative</option>
-                    <option value="Mondrian">Mondrian</option>
-                  </select>
+                  <label className='form-label'>Model settings</label>
+                  <div className="input-group">
+                    <select
+                      className="form-select"
+                      id="input-modelName"
+                      title="Model to use for semantic segmentation"
+                      defaultValue={"ade20k"}
+                      onChange={e => setImageChanged(true)}
+                    >
+                      <option value="ade20k">ADE20K</option>
+                      <option value="pascal">Pascal</option>
+                      <option value="cityscapes">CityScapes</option>
+                    </select>
+                    <select
+                      className="form-select"
+                      id="input-quantizationBytes"
+                      title="Number of quantization bytes to use for semantic segmentation"
+                      defaultValue={"2"}
+                      onChange={e => setImageChanged(true)}
+                    >
+                      <option value="1">One</option>
+                      <option value="2">Two</option>
+                      <option value="4">Disable</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
-              <div className='col-4'>
+              <div className='col-md-4 mt-2 mt-md-0'>
+                {/* discarding threshold */}
                 <div>
                   <label className='form-label' htmlFor='input-discard'>Discarding threshold: {Math.floor(discard * 100)}%</label>
                   <input
@@ -69,6 +91,7 @@ function App() {
                   />
                 </div>
 
+                {/* tolerance */}
                 <div className='mt-3'>
                   <label className='form-label' htmlFor='input-tolerance'>Simplification tolerance: {tolerance}</label>
                   <input
@@ -83,10 +106,25 @@ function App() {
                 </div>
               </div>
 
-              <div className='col-4'>
+              <div className='col-md-4 mt-2 mt-md-0'>
+                {/* color mode */}
                 <div className=''>
+                  <label className='form-label' htmlFor='input-color'>Color selection mode</label>
+                  <select id='input-color' className='form-select' defaultValue={"average"}>
+                    <option value="average">Average</option>
+                    <option value="average-oklab">Average Oklab</option>
+                    <option value="root">Root</option>
+                    <option value="center">Center</option>
+                    <option value="segmentation">Segmentation</option>
+                    <option value="representative">Representative</option>
+                    <option value="mondrian">Mondrian</option>
+                  </select>
+                </div>
+
+                {/* segmentation mode */}
+                <div className='mt-2'>
                   <label className='form-label' htmlFor='input-segmentation'>Segment mode</label>
-                  <select id='input-segmentation' className='form-select' defaultValue={"convex"}>
+                  <select id='input-segmentation' className='form-select' defaultValue={"concave"}>
                     <option value="aabb">Axis-aligned bounding box</option>
                     <option value="convex">Convex hull</option>
                     <option value="concave">Concave hull</option>
@@ -94,46 +132,52 @@ function App() {
                   </select>
                 </div>
 
-                <div className='mt-3 d-flex justify-content-between'>
-                  <button className='btn btn-lg btn-danger' onClick={e => {
-                    e.preventDefault();
-
-                    randomizeSelect('input-color');
-                    randomizeSelect('input-segmentation');
-
-                    // randomize simplify.js tolerance value
-                    const MAX_RANDOM_TOLERANCE = 15;
-                    const tolerance = document.getElementById('input-tolerance') as HTMLInputElement;
-                    tolerance.value = Math.floor(Math.random() * MAX_RANDOM_TOLERANCE).toString();
-                    setTolerance(parseInt(tolerance.value)); // update state
-
-                    shapify();
-                  }}>Randomize</button>
-                  <button className='btn btn-lg btn-primary' id="btn-shapify" onClick={shapify}>Shapify</button>
-                  <button className='btn btn-lg btn-success' onClick={e => {
-                    e.preventDefault();
-                    function download(filename: string, content: string) {
-                      var element = document.createElement('a');
-                      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
-                      element.setAttribute('download', filename);
-
-                      element.style.display = 'none';
-                      document.body.appendChild(element);
-
-                      element.click();
-
-                      document.body.removeChild(element);
-                    }
-
-                    // Start file download.
-                    if (ascanvas) download("artyshapes.svg", ascanvas.toSVG());
-                    else alert("Canvas is not ready yet!");
-
-                  }}>Export</button>
-                </div>
               </div>
+
+            </div>
+            <div className='mt-3 d-flex justify-content-around'>
+              <button className='btn btn-lg btn-danger' onClick={e => {
+                e.preventDefault();
+
+                randomizeSelect('input-color');
+                randomizeSelect('input-segmentation');
+
+                // randomize simplify.js tolerance value
+                const MAX_RANDOM_TOLERANCE = 15;
+                const tolerance = document.getElementById('input-tolerance') as HTMLInputElement;
+                tolerance.value = Math.floor(Math.random() * MAX_RANDOM_TOLERANCE).toString();
+                setTolerance(parseInt(tolerance.value)); // update state
+
+                (document.getElementById("btn-shapify") as HTMLButtonElement).click();
+              }}>Randomize</button>
+
+              <button className='btn btn-lg btn-primary' id="btn-shapify" onClick={e => {
+                shapify(imageChanged);
+                setImageChanged(false);
+              }}>Shapify</button>
+
+              <button className='btn btn-lg btn-success' onClick={e => {
+                e.preventDefault();
+                function download(filename: string, content: string) {
+                  var element = document.createElement('a');
+                  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
+                  element.setAttribute('download', filename);
+
+                  element.style.display = 'none';
+                  document.body.appendChild(element);
+
+                  element.click();
+
+                  document.body.removeChild(element);
+                }
+
+                // Start file download.
+                if (ascanvas) download("artyshapes.svg", ascanvas.toSVG());
+                else alert("Canvas is not ready yet!");
+              }}>Export</button>
             </div>
 
+            {/* input, segmentation, output */}
             <div className='row g-2'>
               {/* images */}
               <div className='col-12 col-xl-4 flex-shrink-0'>
@@ -148,7 +192,6 @@ function App() {
               <div className='col-12 col-xl-4 flex-shrink-0 d-flex justify-content-center'>
                 <canvas id="as-canvas" className='border border-dark border-2 m-auto' height={250} />
               </div>
-
             </div>
 
           </div>
