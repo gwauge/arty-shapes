@@ -1,5 +1,6 @@
 import { Node } from "./union-find";
 import { xy_to_i, rgbToHex } from ".";
+import cluster from "cluster";
 
 export function pointsInRange(segment: Node, point: Node, eps: number, original_img: ImageData) {
     let outputList: Node[] = [];
@@ -25,11 +26,11 @@ export function pointsInRange(segment: Node, point: Node, eps: number, original_
 
 export function dbscan(segment: Node, eps: number, minPts: number, original_img: ImageData) {
     let C = 0;
-    let cluster = [];
-    cluster.push(segment.children?.forEach((pointP, index) => {
+    let cluster: Node[][] = [];
+    segment.children?.forEach((pointP, index) => {
         
         if (pointP.label) {
-            console.log("earlyReturn")
+            //console.log("earlyReturn")
             return;
         }
         let neighbors = pointsInRange(segment, pointP, eps, original_img);
@@ -57,12 +58,11 @@ export function dbscan(segment: Node, eps: number, minPts: number, original_img:
                 seedset.concat(neighbors);
             }
         })
-        console.log(seedset);
-        return seedset;
+        //console.log(seedset);
+        cluster.push(seedset);
+    });
 
-
-    }));
-
+    //console.log(cluster);
     return cluster;
 
 }

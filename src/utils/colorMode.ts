@@ -146,7 +146,13 @@ export function clustered_color(segments: Node[], original_img: ImageData) {
     segments.forEach((segment, i) => {
         if (!segment.children) return;
 
-        console.log(dbscan(segment, 100, 10, original_img));
+        let cluster = dbscan(segment, 100, 20, original_img);
+
+        let max = Math.max(...cluster.map(i => i.length));
+
+        let result = cluster.filter(i => i.length !== max);
+
+        console.log(result[0]);
 
     });
 
