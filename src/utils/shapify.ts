@@ -18,11 +18,13 @@ import {
     center_color,
     average_color,
     mondrian_colors,
-    average_color_oklab
+    average_color_oklab,
+    clustered_color
 } from './colorMode';
 
 import '@tensorflow/tfjs';
 import { load } from '@tensorflow-models/deeplab';
+import { dbscan } from './colorClustering';
 
 type ModelNames = 'pascal' | 'cityscapes' | 'ade20k';
 type QuantizationBytes = 1 | 2 | 4;
@@ -133,6 +135,9 @@ export function draw_segments(
             break;
         case "mondrian":
             mondrian_colors(segments);
+            break;
+        case "cluster":
+            clustered_color(segments, original_img);
             break;
         case "segmentation":
             break;
