@@ -146,13 +146,35 @@ export function clustered_color(segments: Node[], original_img: ImageData) {
     segments.forEach((segment, i) => {
         if (!segment.children) return;
 
-        let cluster = dbscan(segment, 100, 20, original_img);
+        let cluster = dbscan(segment, 30, 50, original_img);
+
+        if (cluster.length < 1) return;
 
         let max = Math.max(...cluster.map(i => i.length));
 
-        let result = cluster.filter(i => i.length !== max);
+        let result = cluster.filter(i => i.length >= max);
 
-        console.log(result[0]);
+        console.log("cluster ", cluster);
+        console.log("result ", result);
+        //if (!result[0]) return;
+
+        let r = 0;
+        let g = 0;
+        let b = 0;
+
+        result[0].forEach((point, i) => {;
+            const index = xy_to_i([point.x, point.y], original_img.width);
+
+            r += original_img.data[index + 0];
+            g += original_img.data[index + 1];
+            b += original_img.data[index + 2];
+        });
+
+        segment.color = rgbToHex(
+            Math.round(r / result[0].length),
+            Math.round(g / result[0].length),
+            Math.round(b / result[0].length),
+        );
 
     });
 

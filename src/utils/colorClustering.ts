@@ -43,10 +43,10 @@ export function dbscan(segment: Node, eps: number, minPts: number, original_img:
         pointP.label = String(C);
         let seedset = neighbors;
         seedset.forEach((pointQ, index) => {
-            if (pointP == pointQ) {
+            if (pointP === pointQ) {
                 return;
             }
-            if (pointQ.label == "Noise") {
+            if (pointQ.label === "Noise") {
                 pointQ.label = String(C);
             }
             if (pointQ.label) {
