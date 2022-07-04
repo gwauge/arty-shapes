@@ -24,7 +24,6 @@ import {
 
 import '@tensorflow/tfjs';
 import { load } from '@tensorflow-models/deeplab';
-import { dbscan } from './colorClustering';
 
 type ModelNames = 'pascal' | 'cityscapes' | 'ade20k';
 type QuantizationBytes = 1 | 2 | 4;
