@@ -18,7 +18,8 @@ import {
     center_color,
     average_color,
     mondrian_colors,
-    average_color_oklab
+    average_color_oklab,
+    clustered_color
 } from './colorMode';
 
 import '@tensorflow/tfjs';
@@ -133,6 +134,9 @@ export function draw_segments(
             break;
         case "mondrian":
             mondrian_colors(segments);
+            break;
+        case "cluster":
+            clustered_color(segments, original_img);
             break;
         case "segmentation":
             break;

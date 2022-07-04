@@ -22,6 +22,7 @@ export type Node = {
     b: number,
     parent: Node;
     children?: Array<Node>;
+    label: string;
 } & BoundingBox;
 
 export type MandatoryNodeKeys = Exclude<keyof Node, "children">;

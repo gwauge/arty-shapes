@@ -1,6 +1,7 @@
 import { Node } from "./union-find";
 import { xy_to_i, rgbToHex } from ".";
 import {linearSrgbToOklab, oklabToLinearSrgb} from 'oklab';
+import { dbscan } from "./colorClustering";
 
 /** Use the average color of all pixels for each segment. */
 export function average_color_oklab(segments: Node[], original_img: ImageData) {
@@ -139,6 +140,44 @@ export function representative_color(segments: Node[], original_img: ImageData) 
 
         root.color = rgbToHex(max_index_r, max_index_g, max_index_b);
     });
+}
+
+export function clustered_color(segments: Node[], original_img: ImageData) {
+    segments.forEach((segment, i) => {
+        if (!segment.children) return;
+
+        let cluster = dbscan(segment, 30, 50, original_img);
+
+        if (cluster.length < 1) return;
+
+        let max = Math.max(...cluster.map(i => i.length));
+
+        let result = cluster.filter(i => i.length >= max);
+
+        console.log("cluster ", cluster);
+        console.log("result ", result);
+        //if (!result[0]) return;
+
+        let r = 0;
+        let g = 0;
+        let b = 0;
+
+        result[0].forEach((point, i) => {;
+            const index = xy_to_i([point.x, point.y], original_img.width);
+
+            r += original_img.data[index + 0];
+            g += original_img.data[index + 1];
+            b += original_img.data[index + 2];
+        });
+
+        segment.color = rgbToHex(
+            Math.round(r / result[0].length),
+            Math.round(g / result[0].length),
+            Math.round(b / result[0].length),
+        );
+
+    });
+
 }
 
 /** Use a specific colour palette to create images similar to those of the artist Piet Mondrian. */

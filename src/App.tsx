@@ -128,6 +128,7 @@ function App() {
                     <option value="segmentation">Segmentation</option>
                     <option value="representative">Representative</option>
                     <option value="mondrian">Mondrian</option>
+                    <option value="cluster">Cluster (very slow!)</option>
                   </select>
                 </div>
 
