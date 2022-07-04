@@ -1,6 +1,5 @@
 import { Node } from "./union-find";
-import { xy_to_i, rgbToHex } from ".";
-import cluster from "cluster";
+import { xy_to_i} from ".";
 
 export function pointsInRange(segment: Node, point: Node, eps: number, original_img: ImageData) {
     let outputList: Node[] = [];
