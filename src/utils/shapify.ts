@@ -11,6 +11,7 @@ import {
     angleBetween,
     rotate,
     AABBfromNSEW,
+    simplifyToN,
 } from './';
 import {
     representative_color,
@@ -210,7 +211,8 @@ export function draw_segments(
             }
 
             // simplify the segment
-            const simplified = simplify(points.map(p => ({ x: p[0], y: p[1] })), tolerance);
+            // const simplified = simplify(points.map(p => ({ x: p[0], y: p[1] })), tolerance);
+            const simplified = simplifyToN(points, 4);
 
             // Initialize and render the polygon in canvas
             if (color_mode_select.value === "mondrian") {
@@ -220,9 +222,11 @@ export function draw_segments(
                     stroke: "#000000"
                 }))
             } else {
-                canvas.add(new fabric.Polygon(simplified, {
+                canvas.add(new fabric.Polyline(simplified, {
                     fill: segment.color
                 }))
             }
+
+            console.log("segment", index, simplified);
         })
 }
