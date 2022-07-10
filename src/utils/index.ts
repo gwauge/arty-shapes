@@ -1,4 +1,5 @@
 import ImageData from '@canvas/image-data';
+import simplify from 'simplify-js';
 
 export function hexToRgb(hex: string) {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -150,4 +151,37 @@ export function AABBfromNSEW(n: number, s: number, e: number, w: number): Vector
         [e, s],
         [w, s],
     ];
+}
+
+export function simplifyToN(points: Vector[], n: number) {
+    if (points.length <= n) return points.map(p => ({ x: p[0], y: p[1] }));
+
+    // create a copy of the array
+    let p = points
+        .map(arr => {
+            return arr.slice();
+        })
+        .map(point => ({ x: point[0], y: point[1] }));
+
+    let t = 1;
+    let new_p: {
+        x: number;
+        y: number;
+    }[];
+    let c = 0;
+
+    while (true) {
+        if (c++ > 100) throw Error("endless loop probably, t: " + t);
+
+        new_p = simplify(p, t);
+        if (new_p.length < n ||
+            (new_p[0].x === new_p[1].x && new_p[0].y === new_p[1].y) ||
+            (new_p[0].x === new_p[2].x && new_p[0].y === new_p[2].y) ||
+            (new_p[1].x === new_p[2].x && new_p[1].y === new_p[2].y)) t -= 0.2;
+        else if (new_p.length > n) t += 1;
+        else break;
+    }
+    console.log("found triangle with tolerance:", t - 1, "in iteration:", c);
+
+    return new_p;
 }
