@@ -114,13 +114,26 @@ function App() {
                     title="Tolerance used for shape simplification (see shapify.js)"
                   />
                 </div>
+
+                {/* vibrant mode */}
+                <div className='mt-2'>
+                  <label className='form-label' htmlFor='input-vibrant'>Segment mode</label>
+                  <select id='input-vibrant' className='form-select' defaultValue={"Vibrant"}>
+                    <option value="Vibrant">Vibrant</option>
+                    <option value="LightVibrant">Light Vibrant</option>
+                    <option value="DarkVibrant">Dark Vibrant</option>
+                    <option value="Muted">Muted</option>
+                    <option value="DarkMuted">Dark Muted</option>
+                    <option value="LightMuted">Light Muted</option>
+                  </select>
+                </div>
               </div>
 
               <div className='col-md-4 mt-2 mt-md-0'>
                 {/* color mode */}
                 <div className=''>
                   <label className='form-label' htmlFor='input-color'>Color selection mode</label>
-                  <select id='input-color' className='form-select' defaultValue={"average"}>
+                  <select id='input-color' className='form-select' defaultValue={"vibrant"}>
                     <option value="average">Average</option>
                     <option value="average-oklab">Average Oklab</option>
                     <option value="root">Root</option>
@@ -129,6 +142,7 @@ function App() {
                     <option value="representative">Representative</option>
                     <option value="mondrian">Mondrian</option>
                     <option value="cluster">Cluster (very slow!)</option>
+                    <option value="vibrant">Vibrant</option>
                   </select>
                 </div>
 

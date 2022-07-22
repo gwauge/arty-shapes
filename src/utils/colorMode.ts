@@ -1,7 +1,8 @@
 import { Node } from "./union-find";
 import { xy_to_i, rgbToHex } from ".";
-import {linearSrgbToOklab, oklabToLinearSrgb} from 'oklab';
+import { linearSrgbToOklab, oklabToLinearSrgb } from 'oklab';
 import { dbscan } from "./colorClustering";
+import Vibrant from "node-vibrant";
 
 /** Use the average color of all pixels for each segment. */
 export function average_color_oklab(segments: Node[], original_img: ImageData) {
@@ -27,8 +28,8 @@ export function average_color_oklab(segments: Node[], original_img: ImageData) {
         });
 
         const sRGB = oklabToLinearSrgb({
-            L: L / root.children.length, 
-            a: a / root.children.length, 
+            L: L / root.children.length,
+            a: a / root.children.length,
             b: b / root.children.length
         })
         if (i === 0) console.log(sRGB);
@@ -162,7 +163,8 @@ export function clustered_color(segments: Node[], original_img: ImageData) {
         let g = 0;
         let b = 0;
 
-        result[0].forEach((point, i) => {;
+        result[0].forEach((point, i) => {
+            ;
             const index = xy_to_i([point.x, point.y], original_img.width);
 
             r += original_img.data[index + 0];
@@ -186,6 +188,58 @@ export function mondrian_colors(segments: Node[]) {
     segments.forEach((root, i) => {
         if (!root.children) return;
 
-        root.color = mondrian_color_palette[Math.floor(Math.random()*mondrian_color_palette.length)]
+        root.color = mondrian_color_palette[Math.floor(Math.random() * mondrian_color_palette.length)]
     })
+}
+
+/** Use the average color of all pixels for each segment. */
+export async function vibrant_color(segments: Node[], original_img: ImageData) {
+
+    const vibrant_mode_select = document.getElementById('input-vibrant') as HTMLSelectElement;
+
+    for (let i = 0; i < segments.length; i++) {
+        const root = segments[i];
+        if (!root.children) return;
+
+        // new canvas
+        const canvas = document.createElement('canvas');
+
+        const colors = new Uint8ClampedArray((root.s - root.n) * (root.e - root.w) * 4);
+
+        root.children.forEach((child, i) => {
+            const { x, y } = child;
+            const index = xy_to_i([x, y], original_img.width);
+            const ii = i * 4;
+
+            colors[ii + 0] = original_img.data[index + 0];
+            colors[ii + 1] = original_img.data[index + 1];
+            colors[ii + 2] = original_img.data[index + 2];
+            colors[ii + 3] = original_img.data[index + 3];
+        });
+
+        const color_image = new ImageData(colors, (root.s - root.n));
+
+        canvas.height = color_image.height;
+        canvas.width = color_image.width;
+
+        // ctx
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        ctx.putImageData(color_image, 0, 0);
+
+        const blob = await new Promise((resolve, reject) => {
+            canvas.toBlob(function (blob) {
+                if (!blob) reject("error getting blob");
+                resolve(blob as Blob);
+            })
+        }) as Blob;
+
+        const url = URL.createObjectURL(blob);
+
+        const v = await Vibrant.from(url).getPalette();
+        root.color = v[vibrant_mode_select.value]?.hex || "#ffffff";
+        // no longer need to read the blob so it's revoked
+        URL.revokeObjectURL(url);
+        canvas.remove();
+    }
 }

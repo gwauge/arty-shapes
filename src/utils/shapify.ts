@@ -19,7 +19,8 @@ import {
     average_color,
     mondrian_colors,
     average_color_oklab,
-    clustered_color
+    clustered_color,
+    vibrant_color
 } from './colorMode';
 
 import '@tensorflow/tfjs';
@@ -95,16 +96,14 @@ export default async function shapify(imageChanged: boolean = true) {
 
     console.log("height", segmentation_img.height, "width", segmentation_img.width);
 
-    draw_segments(segmentation_img);
+    await draw_segments(segmentation_img);
 
     console.timeEnd('shapify');
 }
 
-export function draw_segments(
+export async function draw_segments(
     img: ImageData
 ) {
-    const segments = hk(img);
-
     // calculate appropriate color
     const original_img = nearest_neighbor(getImageData("img-input"), img.width, img.height);
 
@@ -113,6 +112,16 @@ export function draw_segments(
 
     const tolerance_input = document.getElementById('input-tolerance') as HTMLInputElement;
     const tolerance = parseInt(tolerance_input.value);
+
+    const segmentation_mode_select = document.getElementById('input-segmentation') as HTMLSelectElement;
+
+    const segments = hk(img)
+        // discard small segments (area smaller than a predefined value relative to the size of the image)
+        .filter(segment => ((segment.s - segment.n) * (segment.e - segment.w) > (img.height * img.width) * discard_threshold))
+        // sort by size of the bounding box;
+        .sort((a, b) => (b.s - b.n) * (b.e - b.w) - (a.s - a.n) * (a.e - a.w))
+
+    console.log("segments:", segments.length);
 
     // select the color of the segments
     const color_mode_select = document.getElementById('input-color') as HTMLSelectElement;
@@ -138,21 +147,17 @@ export function draw_segments(
         case "cluster":
             clustered_color(segments, original_img);
             break;
+        case "vibrant":
+            await vibrant_color(segments, original_img);
+            break;
         case "segmentation":
             break;
         default:
             break;
     }
 
-    const segmentation_mode_select = document.getElementById('input-segmentation') as HTMLSelectElement;
-
-    console.log("segments:", segments.length);
     segments
-        .sort((a, b) => (b.s - b.n) * (b.e - b.w) - (a.s - a.n) * (a.e - a.w)) // sort by size of the bounding box
         .forEach((segment, index) => {
-            // discard small segments (area smaller than a predefined value relative to the size of the image)
-            if ((segment.s - segment.n) * (segment.e - segment.w) < (img.height * img.width) * discard_threshold) return;
-
             // fillCircle(ctx, [segment.x, segment.y], '#ff0000', 2); // draw the root of each segment
 
             if (!segment.children) return;

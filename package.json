@@ -16,6 +16,7 @@
     "concaveman": "^1.2.1",
     "fabric": "^5.2.1",
     "monotone-chain-convex-hull": "^1.0.0",
+    "node-vibrant": "^3.1.6",
     "oklab": "0.0.2-alpha.1",
     "pca-js": "^1.0.2",
     "react": "^18.1.0",
