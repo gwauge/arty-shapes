@@ -1,4 +1,5 @@
 import ImageData from '@canvas/image-data';
+import { useState } from "react";
 
 export function hexToRgb(hex: string) {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -150,4 +151,20 @@ export function AABBfromNSEW(n: number, s: number, e: number, w: number): Vector
         [e, s],
         [w, s],
     ];
+}
+
+type Callback<T> = (prevValue: T, newValue: T) => void;
+export function useStateWithCallback<T>(initialValue: T): [T, (newValue: T, callback: Callback<T>) => void] {
+    const [value, setValue] = useState(initialValue);
+
+    const setValueAndCallback = (newValue: T, callback: Callback<T>) => {
+        setValue(prevValue => {
+            if (callback) {
+                callback(prevValue, newValue);
+            }
+            return newValue;
+        });
+    };
+
+    return [value, setValueAndCallback];
 }

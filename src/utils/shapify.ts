@@ -38,7 +38,14 @@ async function loadModel(modelName: ModelNames = 'pascal', quantizationBytes: Qu
 
 function semantic_segmentation(modelName: ModelNames, quantizationBytes: QuantizationBytes) {
     const input_image_element = document.getElementById('img-input') as HTMLImageElement;
+    input_image_element.classList.toggle('d-none', false);
+    const bounds = input_image_element.getBoundingClientRect();
+    input_image_element.classList.toggle('d-none', true);
+    // console.log("bounds:", bounds);
+
     const c = document.getElementById('seg-canvas') as HTMLCanvasElement;
+    c.width = bounds.width;
+    c.height = bounds.height;
     const ctx = c.getContext('2d');
 
     return loadModel(modelName, quantizationBytes)
@@ -69,16 +76,40 @@ function semantic_segmentation(modelName: ModelNames, quantizationBytes: Quantiz
 export let canvas: fabric.Canvas;
 
 export default async function shapify(
-    imageChanged: boolean = true,
-    modelName: string,
-    quantizationBytes: number,
-    color: string,
-    threshold: number,
-    tolerance: number,
-    shape: string,
-    border: number
+    imageChanged: boolean = true
 ) {
     console.time('shapify');
+
+    const form_elements = (document.getElementById('parameter-form') as HTMLFormElement).elements;
+    // console.log(form_elements);
+
+    const modelName = "ade20k";
+    const quantizationBytes = 2;
+    const threshold = 0.01;
+
+    // @ts-ignore
+    const color = form_elements['options-color'].value as string;
+    // @ts-ignore
+    const shape = form_elements['options-shape'].value as string;
+    // @ts-ignore
+    const lod = form_elements['options-lod'].value as string;
+    let tolerance;
+    switch (lod) {
+        case 'low': tolerance = 14; break;
+        case 'medium': tolerance = 7; break;
+        case 'high': tolerance = 0; break;
+        default: tolerance = 0; break;
+    }
+    // @ts-ignore
+    const border = parseInt(form_elements['border'].value as string);
+
+    console.log(
+        'color:', color,
+        'shape:', shape,
+        'tolerance:', tolerance,
+        'border:', border,
+    );
+
 
     // only regenerate segmentation if input image or model settings have changed
     if (imageChanged) {
@@ -96,6 +127,7 @@ export default async function shapify(
     if (!seg_ctx) return;
     const segmentation_img = seg_ctx.getImageData(0, 0, segmentation_image_element.width, segmentation_image_element.height);
 
+
     // ensure canvas has the same size as the rendered image
     canvas.setHeight(segmentation_image_element.height);
     canvas.setWidth(segmentation_image_element.width);
@@ -111,6 +143,17 @@ export default async function shapify(
         shape,
         border
     );
+
+    const img_element = document.getElementById('img-input') as HTMLImageElement;
+    img_element.classList.toggle('d-none', false);
+    const bounds = img_element.getBoundingClientRect();
+    img_element.classList.toggle('d-none', true);
+    console.log("bounds:", bounds);
+
+    // ensure canvas has the same size as the rendered image
+    canvas.setHeight(bounds.height);
+    canvas.setWidth(bounds.width);
+    canvas.calcOffset();
 
     console.timeEnd('shapify');
 }
@@ -158,7 +201,10 @@ export async function draw_segments(
             clustered_color(segments, original_img);
             break;
         case "vibrant":
-            await vibrant_color(segments, original_img);
+            await vibrant_color(segments, original_img, "Vibrant");
+            break;
+        case "muted":
+            await vibrant_color(segments, original_img, "Muted");
             break;
         case "segmentation":
             break;
