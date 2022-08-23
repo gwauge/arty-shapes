@@ -28,7 +28,7 @@ export default function Radio({
                 onChange={onChange}
             />
             <label
-                className="btn btn-outline-primary w-100"
+                className="btn btn-outline-secondary w-100 px-0"
                 htmlFor={`${name}-${value}`}
             >{text}</label>
         </div>

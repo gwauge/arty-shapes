@@ -74,6 +74,7 @@ function semantic_segmentation(modelName: ModelNames, quantizationBytes: Quantiz
 }
 
 export let canvas: fabric.Canvas;
+let modelName = "ade20k";
 
 export default async function shapify(
     imageChanged: boolean = true
@@ -83,7 +84,6 @@ export default async function shapify(
     const form_elements = (document.getElementById('parameter-form') as HTMLFormElement).elements;
     // console.log(form_elements);
 
-    const modelName = "ade20k";
     const quantizationBytes = 2;
     const threshold = 0.01;
 
@@ -110,13 +110,16 @@ export default async function shapify(
         'border:', border,
     );
 
-
+    // @ts-ignore
+    const new_modelName = form_elements['options-preset'].value as ModelNames;
     // only regenerate segmentation if input image or model settings have changed
-    if (imageChanged) {
+    console.log(imageChanged, new_modelName, modelName);
+    if (imageChanged || modelName !== new_modelName) {
         console.time('semantic segmentation');
-        await semantic_segmentation(modelName as ModelNames, quantizationBytes as QuantizationBytes);
+        await semantic_segmentation(new_modelName, quantizationBytes as QuantizationBytes);
         console.timeEnd('semantic segmentation');
     }
+    modelName = new_modelName;
 
     // create new, clean canvas
     if (canvas) canvas.dispose();

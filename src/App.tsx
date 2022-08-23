@@ -18,6 +18,7 @@ function App() {
       // setShowPreview(true);
       shapify(imageChanged);
     }
+    setImageChanged(false);
   }
 
   return (
@@ -47,7 +48,7 @@ function App() {
           {/* upload and switch buttons */}
           <div id="button-container" className='row'>
             <div className="col-6">
-              <button className='btn btn-primary w-100 d-flex justify-content-center align-items-center' onClick={() => {
+              <button className='btn btn-secondary w-100 d-flex justify-content-center align-items-center' onClick={() => {
                 document.getElementById("formFileLg")?.click();
               }}>
                 Upload
@@ -58,7 +59,7 @@ function App() {
             </div>
             <div className="col-6">
               <button
-                className='btn btn-primary w-100'
+                className='btn btn-secondary w-100'
                 onClick={() => {
                   setShowPreview(!showPreview);
                   document.querySelector('.canvas-container')?.classList.toggle('d-none');
@@ -72,26 +73,30 @@ function App() {
             name='parameters'
             id="parameter-form"
             onSubmit={e => e.preventDefault()}
-            className='flex-grow-1 border rounded border-primary d-flex flex-column justify-content-around px-2'
+            className='flex-grow-1 border rounded border-secondary d-flex flex-column justify-content-around px-2'
           >
             {/* presets */}
             <div className='mb-3'>
               <h4>Presets</h4>
+
               <div className='row'>
-                <div className='col-4'>
-                  <input type="radio" className="btn-check" name="options-preset" id="preset-skyline" autoComplete="off" defaultChecked />
-                  <label className="btn btn-outline-primary w-100" htmlFor="preset-skyline">Skyline</label>
-                </div>
+                <Radio name="preset" col={4} value={"ade20k"} text={"GP"} onChange={startShapification} checked />
+                <Radio name="preset" col={4} value={"cityscapes"} text={"Skyline"} onChange={startShapification} />
+                <Radio name="preset" col={4} value={"pascal"} text={"Portrait"} onChange={startShapification} />
+              </div>
+            </div>
 
-                <div className='col-4'>
-                  <input type="radio" className="btn-check" name="options-preset" id="preset-portrait" autoComplete="off" />
-                  <label className="btn btn-outline-primary w-100" htmlFor="preset-portrait">Portrait</label>
-                </div>
+            {/* shape */}
+            <div className='mb-3'>
+              <h4>Shape</h4>
+              <div className='row mb-2'>
+                <Radio name="shape" col={6} value={"aabb"} text={"AABB"} onChange={startShapification} checked />
+                <Radio name="shape" col={6} value={"obb"} text={"OBB"} onChange={startShapification} />
+              </div>
 
-                <div className='col-4'>
-                  <input type="radio" className="btn-check" name="options-preset" id="preset-gp" autoComplete="off" />
-                  <label className="btn btn-outline-primary w-100" htmlFor="preset-gp">GP</label>
-                </div>
+              <div className='row'>
+                <Radio name="shape" col={6} value={"convex"} text={"Convex"} onChange={startShapification} />
+                <Radio name="shape" col={6} value={"concave"} text={"Concave"} onChange={startShapification} />
               </div>
             </div>
 
@@ -140,24 +145,11 @@ function App() {
               />
             </div>
 
-            {/* shape */}
-            <div className='mb-3'>
-              <h4>Shape</h4>
-              <div className='row mb-2'>
-                <Radio name="shape" col={6} value={"aabb"} text={"AABB"} onChange={startShapification} checked />
-                <Radio name="shape" col={6} value={"obb"} text={"OBB"} onChange={startShapification} />
-              </div>
-
-              <div className='row'>
-                <Radio name="shape" col={6} value={"convex"} text={"Convex"} onChange={startShapification} />
-                <Radio name="shape" col={6} value={"concave"} text={"Concave"} onChange={startShapification} />
-              </div>
-            </div>
           </form>
 
           <div id="export-container">
 
-            <button className='btn btn-primary w-100' onClick={e => {
+            <button className='btn btn-secondary w-100' onClick={e => {
               e.preventDefault();
               function download(filename: string, content: string) {
                 var element = document.createElement('a');
@@ -206,7 +198,7 @@ function App() {
             <div className='center'>
               <div>
                 {/* <label htmlFor="formFileLg" className="form-label">Large file input example</label> */}
-                <button className='btn btn-primary' onClick={() => {
+                <button className='btn btn-secondary' onClick={() => {
                   document.getElementById("formFileLg")?.click();
                 }}>Upload</button>
               </div>
