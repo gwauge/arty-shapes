@@ -79,7 +79,7 @@ let modelName = "ade20k";
 export default async function shapify(
     imageChanged: boolean = true
 ) {
-    console.time('shapify');
+    console.time('total');
 
     const form_elements = (document.getElementById('parameter-form') as HTMLFormElement).elements;
     // console.log(form_elements);
@@ -158,7 +158,7 @@ export default async function shapify(
     canvas.setWidth(bounds.width);
     canvas.calcOffset();
 
-    console.timeEnd('shapify');
+    console.timeEnd('total');
 }
 
 export async function draw_segments(
@@ -180,6 +180,7 @@ export async function draw_segments(
 
     console.log("segments:", segments.length);
 
+    console.time('coloring');
     // select the color of the segments
     switch (color) {
         case "average":
@@ -215,6 +216,9 @@ export async function draw_segments(
             break;
     }
 
+    console.timeEnd('coloring');
+
+    console.time('drawing');
     segments
         .forEach((segment, index) => {
             // fillCircle(ctx, [segment.x, segment.y], '#ff0000', 2); // draw the root of each segment
@@ -283,4 +287,6 @@ export async function draw_segments(
                 stroke: "#000000"
             }))
         })
+
+    console.timeEnd('drawing');
 }
