@@ -193,9 +193,9 @@ export function mondrian_colors(segments: Node[]) {
 }
 
 /** Use the average color of all pixels for each segment. */
-export async function vibrant_color(segments: Node[], original_img: ImageData) {
+export async function vibrant_color(segments: Node[], original_img: ImageData, vibrant_mode: string) {
 
-    const vibrant_mode_select = document.getElementById('input-vibrant') as HTMLSelectElement;
+    // const vibrant_mode_select = document.getElementById('input-vibrant') as HTMLSelectElement;
 
     for (let i = 0; i < segments.length; i++) {
         const root = segments[i];
@@ -237,7 +237,7 @@ export async function vibrant_color(segments: Node[], original_img: ImageData) {
         const url = URL.createObjectURL(blob);
 
         const v = await Vibrant.from(url).getPalette();
-        root.color = v[vibrant_mode_select.value]?.hex || "#ffffff";
+        root.color = v[vibrant_mode]?.hex || "#ffffff";
         // no longer need to read the blob so it's revoked
         URL.revokeObjectURL(url);
         canvas.remove();

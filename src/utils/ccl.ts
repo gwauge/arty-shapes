@@ -14,6 +14,7 @@ const INDICES_PER_PIXEL = 4; // rgba
  * @param img 
  */
 export default function hk(img: ImageData) {
+    console.time('ccl');
     const forest: Array<Node> = new Array(img.width * img.height);
 
     // first pass - connect the components
@@ -62,6 +63,8 @@ export default function hk(img: ImageData) {
         p.e = Math.max(vertex.x, p.e);
         p.w = Math.min(vertex.x, p.w);
     })
+
+    console.timeEnd('ccl');
 
     return Object.values(roots);
 }
