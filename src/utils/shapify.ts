@@ -184,30 +184,38 @@ export async function draw_segments(
     // select the color of the segments
     switch (color) {
         case "average":
+            // @ts-ignore
             average_color(segments, original_img);
             break;
         case "average-oklab":
+            // @ts-ignore
             average_color_oklab(segments, original_img);
             break;
         case "root":
+            // @ts-ignore
             root_color(segments, original_img);
             break;
         case "center":
+            // @ts-ignore
             center_color(segments, original_img);
             break;
         case "representative":
+            // @ts-ignore
             representative_color(segments, original_img);
             break;
         case "mondrian":
             mondrian_colors(segments);
             break;
         case "cluster":
+            // @ts-ignore
             clustered_color(segments, original_img);
             break;
         case "vibrant":
+            // @ts-ignore
             await vibrant_color(segments, original_img, "Vibrant");
             break;
         case "muted":
+            // @ts-ignore
             await vibrant_color(segments, original_img, "Muted");
             break;
         case "segmentation":
