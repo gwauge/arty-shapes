@@ -1,5 +1,5 @@
 /**
- * @file Union-find data structure. Implementation base on to {@link https://en.wikipedia.org/wiki/Disjoint-set_data_structure Wikipedia >> Disjoint-set data structure}.
+ * @file Union-find data structure. Implementation based on to {@link https://en.wikipedia.org/wiki/Disjoint-set_data_structure Wikipedia >> Disjoint-set data structure}.
  */
 
 import { rgbToHex } from "./";

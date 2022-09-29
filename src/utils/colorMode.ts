@@ -4,7 +4,7 @@ import { linearSrgbToOklab, oklabToLinearSrgb } from 'oklab';
 import { dbscan } from "./colorClustering";
 import Vibrant from "node-vibrant";
 
-/** Use the average color of all pixels for each segment. */
+/** Use the average color of all pixels for each segment with the use of oklab color space. */
 export function average_color_oklab(segments: Node[], original_img: ImageData) {
     segments.forEach((root, i) => {
         if (!root.children) return;
@@ -143,6 +143,7 @@ export function representative_color(segments: Node[], original_img: ImageData) 
     });
 }
 
+/** use clustering (DBSCAN) to find a color that fills a large part of the segment */
 export function clustered_color(segments: Node[], original_img: ImageData) {
     segments.forEach((segment, i) => {
         if (!segment.children) return;
@@ -192,10 +193,8 @@ export function mondrian_colors(segments: Node[]) {
     })
 }
 
-/** Use the average color of all pixels for each segment. */
+/** Use node-vibrant to get key colors of the image */
 export async function vibrant_color(segments: Node[], original_img: ImageData, vibrant_mode: string) {
-
-    // const vibrant_mode_select = document.getElementById('input-vibrant') as HTMLSelectElement;
 
     for (let i = 0; i < segments.length; i++) {
         const root = segments[i];

@@ -1,6 +1,9 @@
 import { Node } from "./union-find";
 import { xy_to_i} from ".";
 
+/** Provides results that are different from averages. 
+* Rather slow, which is why we do not currently use this method.
+* The implementation more or less follows the examples on the Wikipedia page for DBSCAN. */
 export function pointsInRange(segment: Node, point: Node, eps: number, original_img: ImageData) {
     let outputList: Node[] = [];
     const pr = original_img.data[xy_to_i([point.x, point.y], original_img.width) + 0];
@@ -29,7 +32,6 @@ export function dbscan(segment: Node, eps: number, minPts: number, original_img:
     segment.children?.forEach((pointP, index) => {
         
         if (pointP.label) {
-            //console.log("earlyReturn")
             return;
         }
         let neighbors = pointsInRange(segment, pointP, eps, original_img);
@@ -57,11 +59,9 @@ export function dbscan(segment: Node, eps: number, minPts: number, original_img:
                 seedset.concat(neighbors);
             }
         })
-        //console.log(seedset);
         cluster.push(seedset);
     });
 
-    //console.log(cluster);
     return cluster;
 
 }

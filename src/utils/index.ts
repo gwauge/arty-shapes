@@ -1,6 +1,7 @@
 import ImageData from '@canvas/image-data';
 import { useState } from "react";
 
+/** convert a color given as hex value to rgb */
 export function hexToRgb(hex: string) {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     if (!result) throw new Error("Invalid hex color: " + hex);
@@ -11,11 +12,12 @@ export function hexToRgb(hex: string) {
     };
 }
 
-export function componentToHex(c: number) {
+function componentToHex(c: number) {
     const hex = c.toString(16);
     return hex.length === 1 ? "0" + hex : hex;
 }
 
+/** convert a rgb value to hex */
 export function rgbToHex(r: number, g: number, b: number) {
     return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
 }
@@ -100,6 +102,7 @@ export function getImageData(img_id: string) {
     return ctx.getImageData(0, 0, img.naturalWidth, img.naturalHeight);
 }
 
+/** set random values for settings */
 export function randomizeSelect(id: string) {
     const select = document.getElementById(id) as HTMLSelectElement;
     const items = select.getElementsByTagName('option');

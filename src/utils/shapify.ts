@@ -29,6 +29,7 @@ import { load } from '@tensorflow-models/deeplab';
 export type ModelNames = 'pascal' | 'cityscapes' | 'ade20k';
 export type QuantizationBytes = 1 | 2 | 4;
 
+/** load tensorflow machine-learning segmentation model */
 async function loadModel(modelName: ModelNames = 'pascal', quantizationBytes: QuantizationBytes = 2) {
     return await load({
         base: modelName,
@@ -36,6 +37,7 @@ async function loadModel(modelName: ModelNames = 'pascal', quantizationBytes: Qu
     });
 };
 
+/** get segmentation image for the input */
 function semantic_segmentation(modelName: ModelNames, quantizationBytes: QuantizationBytes) {
     const input_image_element = document.getElementById('img-input') as HTMLImageElement;
     input_image_element.classList.toggle('d-none', false);
@@ -76,13 +78,13 @@ function semantic_segmentation(modelName: ModelNames, quantizationBytes: Quantiz
 export let canvas: fabric.Canvas;
 let modelName = "ade20k";
 
+/** pass values from GUI to the next step */
 export default async function shapify(
     imageChanged: boolean = true
 ) {
     console.time('total');
 
     const form_elements = (document.getElementById('parameter-form') as HTMLFormElement).elements;
-    // console.log(form_elements);
 
     const quantizationBytes = 2;
     const threshold = 0.01;
@@ -161,6 +163,7 @@ export default async function shapify(
     console.timeEnd('total');
 }
 
+/** execute pipeline with given settings */
 export async function draw_segments(
     img: ImageData,
     color: string,
